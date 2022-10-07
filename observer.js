@@ -1,23 +1,23 @@
   export default class Observer {
-    constructor() {
+    constructor() { 
         this.subscribers = []
     }
 
     subscribe(name, fn) {
-     let subscibersInfo = {
-        name: name,
-        fn: fn
-     }
-    this.subscribers.push(subscibersInfo)
-        
+        let subscibersInfo = {
+            name: name,
+            fn: fn
+        }
+        this.subscribers.push(subscibersInfo) 
+     
     }
 
     unsubscribe(name, toBeRemoved) {
-            this.subscribers = this.subscribers.filter((obj) => {
-                if (toBeRemoved === obj.fn && name === obj.name) {
-                    return obj
-                }
-            })
+        this.subscribers = this.subscribers.filter((obj) => {
+            if (toBeRemoved === obj.fn && name === obj.name) {
+                return obj
+            }
+        })
         
     }
 

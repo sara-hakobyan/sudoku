@@ -1,24 +1,23 @@
- export default class Sudoku {
+export default class Sudoku {
     constructor() {
         this.gameBoard = this.createAllNumbers()
-        this.userBoard = this.setNumbersForUser()
+        this.userBoard = this.markNumbersForUser()
     }
 
     createAllNumbers() {                                                //the primer board 
         let gameBoard = []
-        let row, column, randomNum
+        let randomNum
         let notMatchingNums = []
         for (let i = 0; i < 81; i++) {
             randomNum = Math.floor(Math.random() * 9) + 1
-            row = Math.floor(i / 9)
-            column = parseInt(i % 9)
-            if (this.numbersCheck(gameBoard, row, column, randomNum)) {
-                gameBoard.push({ row, column, randomNum, flag: false })
+            let possibleNumbers = this.getVisibleNumbers(gameBoard, i)                       //???????????
+            randomNum = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)]
+            if (randomNum) {
+                gameBoard.push({ randomNum, flag: false })
             } else {
                 notMatchingNums.push(i)
                 i--
-                if (notMatchingNums.length > 800) {
-                    console.log('....')
+                if (notMatchingNums.length > 9) {
                     i = -1
                     gameBoard = []
                     notMatchingNums = []
@@ -29,7 +28,9 @@
     }
 
 
-    numbersCheck(arrOfNums, row, column, num) {
+    checkNumbers(arrOfNums, index, num) {               ///???????????????????
+        let row = Math.floor(index / 9)
+        let column = parseInt(index % 9)
         if (this.box3x3Check(arrOfNums, row, column, num) &&
             this.horizontalCheck(arrOfNums, row, num) &&
             this.verticalCheck(arrOfNums, column, num)) {
@@ -39,18 +40,18 @@
     }
 
 
-    cloneCreatedNums(arr) {
+    cloneCreatedNumbers(arr) {
         return arr.map(obj => ({ ...obj }))
     }
 
 
-    setNumbersForUser() {                                                                               //ready board for user
-        let userBoard = this.cloneCreatedNums(this.gameBoard)
+    markNumbersForUser() {                                                                               //ready board for user
+        let userBoard = this.cloneCreatedNumbers(this.gameBoard)
         let changedNumbers = []
         for (let i = 81; i >= 0; i--) {
             let index = Math.floor(Math.random() * 81) + 1
-            if (userBoard[index] && userBoard[index].randomNum !== 0) {
-                userBoard[index].randomNum = 0
+            if (userBoard[index] && !userBoard[index].flag) {
+                userBoard[index].randomNum = 0                                  // ?????????
                 userBoard[index].flag = true
                 changedNumbers.push(index)
             } else {
@@ -64,21 +65,18 @@
     }
 
 
-    getVisibleNumbers(row, column) {
+    getVisibleNumbers(board, index) {
         let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         let visibleNumbers = []
-        let board = this.userBoard
-        // console.log(board)
-        let index = row * 9 + column
         for (let i = 0; i < numbers.length; i++) {
-            if (board[index] && board[index].randomNum === 0 && this.numbersCheck(board, row, column, numbers[i])) {
+            if (this.checkNumbers(board, index, numbers[i])) {
                 visibleNumbers.push(numbers[i])
             }
         }
         return visibleNumbers
     }
 
-    updateBoardNums(row, column, value) {
+    fillBoardNumbers(row, column, value) {
         let visibleNums = this.getVisibleNumbers(row, column)
         let board = this.userBoard
         let index = row * 9 + column
@@ -92,19 +90,9 @@
 
 
 
-    isGameOver() {
-        let gameStatus = this.completedBoard(this.userBoard)
-        if (gameStatus) {
-            console.log('game is over: u won!')
-        } else {
-            console.log('next move')
-        }
-    }
-
-
-    completedBoard(board) {
+    isGameOver() {                                                    /// ?????????????????
         for (let i = 0; i < board.length; i++) {
-            if (board[i].randomNum == 0) {
+            if (board[i].randomNum === 0) {
                 return false
             }
         }
@@ -136,7 +124,6 @@
     box3x3Check(arrOfNums, row, column, num) {
         let boxRow = row - row % 3
         let boxColumn = column - column % 3
-        // console.log({boxRow, boxColumn})
         for (let i = boxRow; i < boxRow + 3; i++) {
             for (let j = boxColumn; j < boxColumn + 3; j++) {
                 let index = i * 9 + j
@@ -150,4 +137,7 @@
 
 
 }
+
+
+
 

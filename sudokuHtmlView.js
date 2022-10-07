@@ -4,74 +4,92 @@ export default class HtmlView {
         this.userBoard = sudoku.userBoard
     }
 
-    getParent() {
+    createBoard() {
         let gridBoard = document.getElementById('grid-board')
-        gridBoard.style.maxheight = '380px'
-        gridBoard.style.maxWidth = '380px'
-        gridBoard.style.display = 'flex'
-        gridBoard.style.flexWrap = 'wrap'
+        this.styleBoard(gridBoard)
         return gridBoard
     }
 
-    getBoardNumCell() {
+    createBoardCell() {
         let numberCell = document.createElement('div')
-        numberCell.style.height = '40px'
-        numberCell.style.width = '40px'
-        numberCell.style.border = '1px solid lightgray'
-        numberCell.style.textAlign = 'center' 
-        numberCell.style.cursor = 'pointer'    
+        this.styleBoardCell(numberCell)
         return numberCell
     }
 
 
-   makeBoard() {                                            
-    let gridBoard = this.getParent()
+    makeBoard() {
+        let gridBoard = this.createBoard()
         let board = this.userBoard
         for (let i = 0; i < board.length; i++) {
-            let numberCell = this.getBoardNumCell()
+            let numberCell = this.createBoardCell()
             if (board[i].flag) {
                 numberCell.innerHTML = ''
             } else {
-            numberCell.innerHTML = board[i].randomNum
+                numberCell.innerHTML = board[i].randomNum
             }
             gridBoard.appendChild(numberCell)
         }
-   }
-
-
-   getVisibleNumsBoard () {
-    let visiblesBoard = document.getElementById('display')
-    visiblesBoard.style.border = '1px solid gray'
-    visiblesBoard.style.height = '100px'
-    visiblesBoard.style.width = '376px'
-    return visiblesBoard
     }
-    
- 
-    getVisibleNumCell () {
+
+
+    getVisibleNumbersBoard() {
+        let visiblesBoard = document.getElementById('display')
+        this.styleVisibleNumbersBoard(visiblesBoard)
+        return visiblesBoard
+    }
+
+
+    getVisibleNumberCell() {
         let visibleCell = document.createElement('div')
-        visibleCell.style.border = '1px solid gary'
-        visibleCell.style.width = '40px'
-        visibleCell.style.height = '40px'
-        visibleCell.style.textAlign = 'center'
-        visibleCell.style.display = 'flex'
-        visibleCell.style.justifyContent = 'space-araound'
+        this.styleVisibleNumberCell(visibleCell)
         return visibleCell
     }
 
-    
-    makeVisiblesBoard () {
-        let visiblesBoard = this.getVisibleNumsBoard()
+
+    makeVisibleNumbersBoard() {
+        let visiblesBoard = this.getVisibleNumberBoard()
         let board = this.userBoard
         let visibleNums
         for (let i = 0; i < board.length; i++) {
             visibleNums = this.sudoku.getVisibleNumbers(board[i].row, board[i].column)
         }
         for (let i = 0; i < visibleNums.length; i++) {
-            let visibleCell = this.getVisibleNumCell()
+            let visibleCell = this.getVisibleNumberCell()
             visibleCell.innerHTML = visibleNums[i]
             visiblesBoard.appendChild(visibleCell)
         }
+    }
+
+
+    styleVisibleNumberCell(element) {
+        element.style.border = '1px solid gary'
+        element.style.width = '40px'
+        element.style.height = '40px'
+        element.style.textAlign = 'center'
+        element.style.display = 'flex'
+        element.style.justifyContent = 'space-araound'
+    }
+
+    styleVisibleNumbersBoard(element) {
+        element.style.border = '1px solid gray'
+        element.style.height = '100px'
+        element.style.width = '376px'
+    }
+
+    styleBoard(element) {
+        element.style.maxheight = '380px'
+        element.style.maxWidth = '380px'
+        element.style.display = 'flex'
+        element.style.flexWrap = 'wrap'
+    }
+
+
+    styleBoardCell(element) {
+        element.style.height = '40px'
+        element.style.width = '40px'
+        element.style.border = '1px solid lightgray'
+        element.style.textAlign = 'center'
+        element.style.cursor = 'pointer'
     }
 
 }

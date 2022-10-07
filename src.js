@@ -7,7 +7,7 @@ const mySudoku = new Sudoku()
 const htmlView = new HtmlView(mySudoku)
 
 htmlView.makeBoard()
-htmlView.getVisibleNumsBoard()
+htmlView.getVisibleNumbersBoard()
 
 
 
