@@ -4,7 +4,7 @@ export default class HtmlView {
         this.userBoard = sudoku.userBoard
     }
 
-    createBoard() {
+    getBoard() {
         let gridBoard = document.getElementById('grid-board')
         this.styleBoard(gridBoard)
         return gridBoard
@@ -18,7 +18,7 @@ export default class HtmlView {
 
 
     makeBoard() {
-        let gridBoard = this.createBoard()
+        let gridBoard = this.getBoard()
         let board = this.userBoard
         for (let i = 0; i < board.length; i++) {
             let numberCell = this.createBoardCell()
