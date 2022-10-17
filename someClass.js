@@ -41,14 +41,8 @@ class Board {
     }
 
     setNumbers(index, newValue) {     
-        // console.log(this.board)                                       
-        for (let i = 0; i < this.board.length; i ++) {
-            if(i === index) {
-              this.board[index].innerHTML = newValue
-              console.log(this.board)
-            }
-        }
-        this.update(this.board)          //??????????? return nodelist
+        this.board[index] = newValue
+        this.update(this.board)                                //?????????
     }
     
   
@@ -58,8 +52,7 @@ class Board {
             board[i].innerHTML = numbers[i]
             console.log(board[i])
         }
-        // console.log(board)
-        this.board = board                                                               //???????????????
+        this.board = numbers                                                              
         // return board                                                            //returns NodeList
     }
 
