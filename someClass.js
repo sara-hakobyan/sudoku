@@ -1,3 +1,4 @@
+// import Sudoku from "./sudoku.js"
 
 
 const HTMLUtils = {
@@ -13,8 +14,8 @@ const HTMLUtils = {
     },
 
     collectionOfCells: function(cssClass) {
-        let buttons = document.querySelectorAll(cssClass)
-        return buttons
+        let cells = document.querySelectorAll(cssClass)
+        return cells
     }
 }
 
@@ -27,27 +28,39 @@ class Board {
     }
     
      
-    createBoard(value) {
+    createBoard(boardLength) {
         let board = HTMLUtils.createBoard(this.parentContainerId)
-        let cell = HTMLUtils.createCell('clickable-number')
-        cell.innerHTML = value
-        board.appendChild(cell)
-        let boardCells = HTMLUtils.collectionOfCells('.clickable-number')
-        for (let i = 0; i < boardCells.length; i++) {
-            boardCells[i].addEventListener('click', this.onNumberClick, {once: true})
+        for (let i = 0; i < boardLength; i++) {
+            let cell = HTMLUtils.createCell('clickable-number')
+            board.appendChild(cell)
+           cell.addEventListener('click', this.onNumberClick, {once: true})
             // boardCells[i].removeEventListener('click', this.onNumberClick)
         }
-        console.log(cell)                                              
-        return boardCells
+                                                    
+        
+    }
+
+    setNumbers(index, newValue) {     
+        // console.log(this.board)                                       
+        for (let i = 0; i < this.board.length; i ++) {
+            if(i === index) {
+              this.board[index].innerHTML = newValue
+              console.log(this.board)
+            }
+        }
+        this.update(this.board)          //??????????? return nodelist
     }
     
   
     update(numbers) {
-        console.log('njn jn', this.boardCells)
+        let board = HTMLUtils.collectionOfCells('.clickable-number')
         for (let i = 0; i < numbers.length; i++) {
-            board = this.createBoard(numbers[i])
+            board[i].innerHTML = numbers[i]
+            console.log(board[i])
         }
-        return board
+        // console.log(board)
+        this.board = board                                                               //???????????????
+        // return board                                                            //returns NodeList
     }
 
 
@@ -57,14 +70,16 @@ class Board {
         let boardCell = HTMLUtils.createCell('clicked-number')
         boardCell.innerText = value
         board.appendChild(boardCell)
-        console.log(boardCell)
+        // console.log(boardCell)
     }
 
 
     removeAll(){
         let boardCells = HTMLUtils.collectionOfCells('.clickable-number')
         for (let i = 0; i < boardCells.length; i++) {
-            boardCells[i].removeEventListener('click', this.onNumberClick)
+            console.log(boardCells[i])
+            boardCells[i].removeEventListener('click', this.onNumberClick) 
+            
         }
         return boardCells
     }
@@ -82,7 +97,7 @@ function board() {
 
 let arr = board()
 
-
+// const mySudoku = new Sudoku()
 const myBoard = new Board('grid-board')
-// myBoard.update(arr)
+// myBoard.update(mySudoku.userBoard)
 
