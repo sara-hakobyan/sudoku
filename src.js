@@ -4,12 +4,15 @@ import HtmlView from './sudokuHtmlView.js'
 
 
 const mySudoku = new Sudoku()
-const htmlView = new HtmlView(mySudoku)
-
-htmlView.makeBoard()
-htmlView.getVisibleNumbersBoard()
+const htmlView = new HtmlView(mySudoku, 'grid-board')
 
 
+// htmlView.createBoard(mySudoku.userBoard.length)
+htmlView.updateBoard(mySudoku.userBoard)
+// htmlView.createVisibleNumbersBoard()
+
+
+mySudoku.observer.subscribe('onDataChanged', htmlView.updateBoard)                 
 
 function print() {
     let board = mySudoku.userBoard
@@ -28,3 +31,4 @@ function print() {
 print();
 
 
+console.log(mySudoku.observer)

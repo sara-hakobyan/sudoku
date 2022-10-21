@@ -2,18 +2,17 @@
 
 
 const HTMLUtils = {
-    createBoard: function(id) {
-        let board = document.getElementById(id)
-        return board
+    getParentId: function(id) {
+        return document.getElementById(id)
     },
 
-    createCell: function(cssClass) {
+    createElement: function(cssClass) {
         let boardCell = document.createElement('div')
         boardCell.className = cssClass
         return  boardCell
     },
 
-    collectionOfCells: function(cssClass) {
+    getElementsByClassName: function(cssClass) {
         let cells = document.querySelectorAll(cssClass)
         return cells
     }
@@ -29,9 +28,9 @@ class Board {
     
      
     createBoard(boardLength) {
-        let board = HTMLUtils.createBoard(this.parentContainerId)
+        let board = HTMLUtils.getParentId(this.parentContainerId)
         for (let i = 0; i < boardLength; i++) {
-            let cell = HTMLUtils.createCell('clickable-number')
+            let cell = HTMLUtils.createElement('clickable-number')
             board.appendChild(cell)
            cell.addEventListener('click', this.onNumberClick, {once: true})
             // boardCells[i].removeEventListener('click', this.onNumberClick)
@@ -47,7 +46,7 @@ class Board {
     
   
     update(numbers) {
-        let board = HTMLUtils.collectionOfCells('.clickable-number')
+        let board = HTMLUtils.getElementsByClassName('.clickable-number')
         for (let i = 0; i < numbers.length; i++) {
             board[i].innerHTML = numbers[i]
             console.log(board[i])
@@ -59,8 +58,8 @@ class Board {
 
     onNumberClick(event) {
         let value = event.target.innerHTML
-        let board = HTMLUtils.createBoard('visibles-board')
-        let boardCell = HTMLUtils.createCell('clicked-number')
+        let board = HTMLUtils.getParentId('visibles-board')
+        let boardCell = HTMLUtils.createElement('clicked-number')
         boardCell.innerText = value
         board.appendChild(boardCell)
         // console.log(boardCell)
@@ -68,7 +67,7 @@ class Board {
 
 
     removeAll(){
-        let boardCells = HTMLUtils.collectionOfCells('.clickable-number')
+        let boardCells = HTMLUtils.getElementsByClassName('.clickable-number')
         for (let i = 0; i < boardCells.length; i++) {
             console.log(boardCells[i])
             boardCells[i].removeEventListener('click', this.onNumberClick) 
