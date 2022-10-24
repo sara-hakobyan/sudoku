@@ -16,6 +16,8 @@ const HTMLUtils = {
 }
 
 
+
+
 const SetUpBoardStyles = {
     styleVisibleNumbersBoard: function(element) {
         element.style.border = '1px solid gray'
@@ -52,6 +54,20 @@ export default class HtmlView {
         // this.sudoku.observer.subscribe('onDataChanged', this.updateBoard)
     }
 
+    setUp(model) { 
+        if (this.boardCells) {
+          console.log(this.gridBoard.firstChild)
+            while (this.gridBoard.firstChild) {
+                console.log('njhbjhbn')
+            this.gridBoard.removeChild(this.gridBoard.firstChild)
+        }
+            // let gridBoard = HTMLUtils.getParentId(this.parentContainerId)
+            // gridBoard.parentNode.removeChild(gridBoard)
+        }
+        this.updateBoard(model)
+    }
+
+
     createBoard(boardLength) {
         let gridBoard = HTMLUtils.getParentId(this.parentContainerId)
         SetUpBoardStyles.styleBoard(gridBoard)
@@ -61,10 +77,19 @@ export default class HtmlView {
             SetUpBoardStyles.styleBoardCell(boardCell)
             gridBoard.appendChild(boardCell)
         }
+        this.gridBoard = gridBoard
+    }
+
+    removeAll(){
+        let boardCells = HTMLUtils.getElementsByClassName('.number')
+        for (let i = 0; i < boardCells.length; i++) {
+            boardCells[i].removeEventListener('click', this.onNumberClick) 
+            
+        }
+        // return boardCells
     }
 
     updateBoard(model) {
-        // let model = this.userBoard
         this.createBoard(model.length)
         let boardCells = HTMLUtils.getElementsByClassName('.number')
         for (let i = 0; i < model.length; i++) {
@@ -99,7 +124,7 @@ export default class HtmlView {
         for(let i = 0; i < this.userBoard.length; i++) {
             if (i === this.index) {
                 this.boardCells[i].innerHTML = value
-                this.sudoku.fillBoardNumbers(this.userBoard[i].row, this.userBoard[i].column, number)      //??????????
+                this.sudoku.fillBoardNumbers(this.userBoard[i].row, this.userBoard[i].column, number)          //??????????
             }
         }
         console.log(this.userBoard)
@@ -109,7 +134,7 @@ export default class HtmlView {
 
     OnBoardCellClick(event) {
         let id = event.target.id
-        let index = Number(id)                                                            //converting string to number
+        let index = Number(id)                                                                                     //converting string to number
         let visibleNumbers = this.sudoku.getVisibleNumbers(this.userBoard, index)
         this.createVisibleNumbersBoard(visibleNumbers.length)
         let visiblesBoardCells = HTMLUtils.getElementsByClassName('.visible-number')
@@ -117,7 +142,7 @@ export default class HtmlView {
             this.sudoku.observer.notify( 'dataOfVisibles', visiblesBoardCells[i].innerHTML = visibleNumbers[i])                  //??????????????????
             
         }
-        this.index = index                                       //
+        this.index = index                                                   //
     }
 
 

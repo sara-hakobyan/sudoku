@@ -67,9 +67,8 @@ class Board {
 
 
     removeAll(){
-        let boardCells = HTMLUtils.getElementsByClassName('.clickable-number')
+        let boardCells = HTMLUtils.getElementsByClassName('.number')
         for (let i = 0; i < boardCells.length; i++) {
-            console.log(boardCells[i])
             boardCells[i].removeEventListener('click', this.onNumberClick) 
             
         }
