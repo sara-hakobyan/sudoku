@@ -6,6 +6,13 @@ const HTMLUtils = {
         return document.getElementById(id)
     },
 
+    createParentElement: function(id) {
+        let element = document.createElement('div')
+        element.setAttribute('id', id)
+        return element
+
+    },
+
     createElement: function(cssClass) {
         let boardCell = document.createElement('div')
         boardCell.className = cssClass
@@ -25,19 +32,31 @@ class Board {
         this.parentContainerId = parentContainerId
         this.onNumberClick = this.onNumberClick.bind(this)
     }
+
+
+    createBoard (arr, id) {
+        let board = HTMLUtils.createParentElement(id)
+        for (let i = 0; i < arr.length; i++) {
+            let cell = HTMLUtils.createElement('clickable')
+            cell.innerHTML = arr[i]
+            board.appendChild(cell)
+        }
+        return board
+    }
     
      
-    createBoard(boardLength) {
-        let board = HTMLUtils.getParentId(this.parentContainerId)
-        for (let i = 0; i < boardLength; i++) {
-            let cell = HTMLUtils.createElement('clickable-number')
-            board.appendChild(cell)
-           cell.addEventListener('click', this.onNumberClick, {once: true})
-            // boardCells[i].removeEventListener('click', this.onNumberClick)
-        }
+    // createBoard(boardLength) {
+    //     let grid = HTMLUtils.createParentDiv()
+    //     let board = HTMLUtils.getParentId(this.parentContainerId)
+    //     for (let i = 0; i < boardLength.length; i++) {
+    //         let cell = HTMLUtils.createElement('clickable-number')
+    //         board.appendChild(cell)
+    //        cell.addEventListener('click', this.onNumberClick, {once: true})
+    //         // boardCells[i].removeEventListener('click', this.onNumberClick)
+    //     }
                                                     
         
-    }
+    // }
 
     setNumbers(index, newValue) {     
         this.board[index] = newValue

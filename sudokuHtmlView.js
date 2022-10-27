@@ -3,6 +3,13 @@ const HTMLUtils = {
         return document.getElementById(id)
     },
 
+    createParentElement: function(id) {
+        let element = document.createElement('div')
+        element.setAttribute('id', id)
+        document.body.append(element)
+        return element
+    },
+
     createElement: function (cssClass, id) {
         let element = document.createElement('div')
         element.setAttribute('id', id)
@@ -45,66 +52,82 @@ const SetUpBoardStyles = {
 
 
 export default class HtmlView {
-    constructor(sudoku, parentContainerId) {
-        this.parentContainerId = parentContainerId
-        this.sudoku = sudoku
-        this.userBoard = this.sudoku.userBoard
-        this.OnBoardCellClick = this.OnBoardCellClick.bind(this)
-        this.onVisibleNumberCellClick = this.onVisibleNumberCellClick.bind(this)
-        // this.sudoku.observer.subscribe('onDataChanged', this.updateBoard)
+    constructor(model) {
+        // this.model = model
+        this.OnBoardCellClick = this._OnBoardCellClick.bind(this)
+        this.onVisibleNumberCellClick = this._onVisibleNumberCellClick.bind(this)
     }
 
-    setUp(model) { 
-        if (this.boardCells) {
-          console.log(this.gridBoard.firstChild)
-            while (this.gridBoard.firstChild) {
-                console.log('njhbjhbn')
-            this.gridBoard.removeChild(this.gridBoard.firstChild)
-        }
-            // let gridBoard = HTMLUtils.getParentId(this.parentContainerId)
-            // gridBoard.parentNode.removeChild(gridBoard)
-        }
-        this.updateBoard(model)
+    setModel (model,parentId) {
+        this.model = model
+        this._createBoardContainer(parentId)
+        this._createBoard(this.model)
+        this._updateBoard(this.model)
+    } 
+
+
+    setParentContainer() {
+        this._removeAllEventListeners()
+        this.gridBoard.remove()
     }
 
+    setUp(model, parentId) {
+        if (this.model) {
+            this.setParentContainer()
+        }
+        this.setModel(model,parentId)
+    }
 
-    createBoard(boardLength) {
-        let gridBoard = HTMLUtils.getParentId(this.parentContainerId)
+    // setUp(model, parentId) { 
+    //         // while (this.gridBoard.firstChild) 
+    //         while (this.boardCells) {
+    //         this.gridBoard.removeChild(this.gridBoard.firstChild)
+    //     }
+    //         // let gridBoard = HTMLUtils.getParentId(this.parentContainerId)
+    //         // gridBoard.parentNode.removeChild(gridBoard)
+    //         this.updateBoard(model)
+    // }
+
+
+     _createBoardContainer (parentId) {
+        let gridBoard = HTMLUtils.createParentElement(parentId)
         SetUpBoardStyles.styleBoard(gridBoard)
-        for (let i = 0; i < boardLength; i++) {
-            let boardCell = HTMLUtils.createElement('number', i)
-            boardCell.addEventListener('click', this.OnBoardCellClick)
-            SetUpBoardStyles.styleBoardCell(boardCell)
-            gridBoard.appendChild(boardCell)
-        }
         this.gridBoard = gridBoard
-    }
+     }
 
-    removeAll(){
-        let boardCells = HTMLUtils.getElementsByClassName('.number')
-        for (let i = 0; i < boardCells.length; i++) {
-            boardCells[i].removeEventListener('click', this.onNumberClick) 
-            
-        }
-        // return boardCells
-    }
 
-    updateBoard(model) {
-        this.createBoard(model.length)
-        let boardCells = HTMLUtils.getElementsByClassName('.number')
+    _createBoard(model) {
         for (let i = 0; i < model.length; i++) {
-            this.sudoku.observer.notify('onDataChanged', model)                       //????????????observer
+        let boardCell = HTMLUtils.createElement('number', i)
+        boardCell.addEventListener('click', this.OnBoardCellClick)
+        SetUpBoardStyles.styleBoardCell(boardCell)
+        this.gridBoard.appendChild(boardCell)
+        }
+        let boardCells = HTMLUtils.getElementsByClassName('.number')
+        this.boardCells = boardCells
+        
+    }
+
+    _removeAllEventListeners(){
+        // let boardCells = HTMLUtils.getElementsByClassName('.number')
+        for (let i = 0; i < this.boardCells.length; i++) {
+            this.boardCells[i].removeEventListener('click', this.onNumberClick)  
+        }
+    }
+
+    _updateBoard(model) {
+        for (let i = 0; i < model.length; i++) {                 
             if (model[i].flag) {
-                boardCells[i].innerHTML = ''
+                this.boardCells[i].innerHTML = ''
             } else {
-                boardCells[i].innerHTML = model[i].randomNum
+                this.boardCells[i].innerHTML = model[i].randomNum
             }
         }
-        this.boardCells = boardCells
     }
 
-    createVisibleNumbersBoard(visibleNumbersLength) {
-        let visibleNumbersBoard = HTMLUtils.getParentId('display')
+
+    _createVisibleNumbersBoard(visibleNumbersLength) {
+        let visibleNumbersBoard = HTMLUtils.createParentElement('display')
         while (visibleNumbersBoard.firstChild) {
             visibleNumbersBoard.removeChild(visibleNumbersBoard.firstChild)
         }
@@ -115,31 +138,33 @@ export default class HtmlView {
             SetUpBoardStyles.styleBoardCell(visiblesBoardCell)
             visibleNumbersBoard.appendChild(visiblesBoardCell)
         }
+        let visiblesBoardCells = HTMLUtils.getElementsByClassName('.visible-number')
+        this.visiblesBoardCells = visiblesBoardCells
     }
 
 
-    onVisibleNumberCellClick(event) {
+    _onVisibleNumberCellClick(event) {
         let value = event.target.innerHTML
         let number = Number(value)
-        for(let i = 0; i < this.userBoard.length; i++) {
+        for(let i = 0; i < this.model.userBoard.length; i++) {
             if (i === this.index) {
                 this.boardCells[i].innerHTML = value
-                this.sudoku.fillBoardNumbers(this.userBoard[i].row, this.userBoard[i].column, number)          //??????????
+                this.model.fillBoardNumbers(this.model.userBoard[i].row, this.model.userBoard[i].column, number)          //??????????
             }
         }
-        console.log(this.userBoard)
+        console.log(this.model.userBoard)
 
     }
 
 
-    OnBoardCellClick(event) {
+    _OnBoardCellClick(event) {
         let id = event.target.id
         let index = Number(id)                                                                                     //converting string to number
-        let visibleNumbers = this.sudoku.getVisibleNumbers(this.userBoard, index)
+        let visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, index)
         this.createVisibleNumbersBoard(visibleNumbers.length)
-        let visiblesBoardCells = HTMLUtils.getElementsByClassName('.visible-number')
+        // let visiblesBoardCells = HTMLUtils.getElementsByClassName('.visible-number')
         for (let i = 0; i < visibleNumbers.length; i++) {
-            this.sudoku.observer.notify( 'dataOfVisibles', visiblesBoardCells[i].innerHTML = visibleNumbers[i])                  //??????????????????
+            this.model.observer.notify( 'dataOfVisibles', this.visiblesBoardCells[i].innerHTML = visibleNumbers[i])                  //??????????????????
             
         }
         this.index = index                                                   //
