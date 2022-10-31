@@ -62,7 +62,7 @@ export default class Sudoku {
                 break
             }
         }
-        this.observer.notify('dataChange', this.userBoard)                                                         // no return ???
+        this.observer.notify('dataChanged', this.userBoard)                                                         // no return ???
     }
 
 
@@ -77,9 +77,7 @@ export default class Sudoku {
                 }
             }
         }
-        // this.visibleNumbers = visibleNumbers
-        // this.observer.notify('dataOfVisibles', visibleNumbers)
-        // Changeable.dataOfVisibles.push(visibleNumbers)
+        this.observer.notify('dataVisibles', visibleNumbers)
         return visibleNumbers
     }
 
@@ -88,8 +86,8 @@ export default class Sudoku {
         let visibleNums = this.getVisibleNumbers(this.userBoard, index)
         if (this.userBoard[index].flag && visibleNums.includes(value)) {
             this.userBoard[index].randomNum = value
-            this.observer.notify('dataChange', this.userBoard)
-            this.isGameOver()                                                    //........
+            this.observer.notify('dataChange', this.userBoard)                  //observer.notify is added
+            this.isGameOver()                                                      //........
         } else {
             return 'invalid number'
         }
@@ -144,5 +142,4 @@ export default class Sudoku {
     }
 
 }
-
 

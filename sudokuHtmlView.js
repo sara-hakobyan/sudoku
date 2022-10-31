@@ -143,6 +143,7 @@ export default class HtmlView {
                 this.boardCells[i].innerHTML = this.model.userBoard[i].randomNum
             }
         }
+        console.log(this.model.userBoard)
     }
 
 
@@ -172,25 +173,33 @@ export default class HtmlView {
             if (i === this.index) {
                 this.boardCells[i].innerHTML = value
                 this.model.fillBoardNumbers(this.model.userBoard[i].row, this.model.userBoard[i].column, number)          //??????????
+                this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)                     //notify in sudoku.js file ??
+                this._updateVisiblesBoard()
             }
         }
         console.log(this.model.userBoard)
-
     }
 
 
     _OnBoardCellClick(event) {
         let id = event.target.id
-        let index = Number(id)                                                                                     //converting string to number
-        this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, index)
+        this.index = Number(id)                                                                                     //converting string to number
+        this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)
+        console.log(this.visibleNumbers)
         // this.setContainerForVisiblesBoard('display')
+        
+        this._updateVisiblesBoard()
+        // for (let i = 0; i < this.visibleNumbers.length; i++) {
+        //     this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]                            //
+            
+        // }
+    }
+
+    _updateVisiblesBoard() {
         this._createVisibleNumbersBoard()
         for (let i = 0; i < this.visibleNumbers.length; i++) {
             this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]                            //
             
         }
-        this.index = index                                                   //
     }
-
-
 }
