@@ -1,7 +1,14 @@
 const HTMLUtils = {
-    getParentId: function (id) {
+    // getParentId: function (id) {
+    //     return document.getElementById(id)
+    // },
+
+    createParentDiv : function(id) {
+        let div = document.querySelector('div')
+        div.setAttribute('id', id)
         return document.getElementById(id)
     },
+
 
     createParentElement: function(id) {
         let element = document.createElement('div')
@@ -53,93 +60,108 @@ const SetUpBoardStyles = {
 
 export default class HtmlView {
     constructor(model) {
-        // this.model = model
+        this.onBoardUpdate = this.onBoardUpdate.bind(this)
         this.OnBoardCellClick = this._OnBoardCellClick.bind(this)
-        this.onVisibleNumberCellClick = this._onVisibleNumberCellClick.bind(this)
+        this.onVisibleNumberCellClick = this._onVisibleNumberCellClick.bind(this);
+        if (model) {
+            this.setModel(model);
+        }
     }
 
-    setModel (model,parentId) {
+    setContainer (parentId) {
+        if (this.parentId) {
+            document.getElementById(this.parentId).remove(this.gridBoard);
+        }
+
+        this.parentId = parentId;
+        if (this.parentId) {
+            this._createBoardContainer(parentId)
+            this._createBoard()
+            this._updateBoard()
+        }
+    }
+
+    setModel (model) {
+        if (this.model) {
+            this.model.observer.unsubscribe('dataChange', this.onBoardUpdate)
+        }
         this.model = model
-        this._createBoardContainer(parentId)
-        this._createBoard(this.model)
-        this._updateBoard(this.model)
+        if (this.model) {
+            this.model.observer.subscribe('dataChange', this.onBoardUpdate)
+        }
+        this.onBoardUpdate();
     } 
 
-
-    setParentContainer() {
-        this._removeAllEventListeners()
-        this.gridBoard.remove()
-    }
-
-    setUp(model, parentId) {
-        if (this.model) {
-            this.setParentContainer()
+    onBoardUpdate( ) {
+        if (this.gridBoard ) {
+            this._updateBoard();
         }
-        this.setModel(model,parentId)
     }
 
-    // setUp(model, parentId) { 
-    //         // while (this.gridBoard.firstChild) 
-    //         while (this.boardCells) {
-    //         this.gridBoard.removeChild(this.gridBoard.firstChild)
-    //     }
-    //         // let gridBoard = HTMLUtils.getParentId(this.parentContainerId)
-    //         // gridBoard.parentNode.removeChild(gridBoard)
-    //         this.updateBoard(model)
-    // }
 
 
-     _createBoardContainer (parentId) {
-        let gridBoard = HTMLUtils.createParentElement(parentId)
-        SetUpBoardStyles.styleBoard(gridBoard)
-        this.gridBoard = gridBoard
+    setContainerForVisiblesBoard(visiblesId) {                                               //new function
+        if (this.visiblesId) {
+            document.getElementById(this.visiblesId).remove(visiblesId)
+        }
+        this.visiblesId = visiblesId
+        if (this.visiblesId) {
+            this._createVisiblesBoardContainer()
+        }
+    }
+
+
+     _createBoardContainer () {
+        this.gridBoard = HTMLUtils.createParentDiv(this.parentId)
+        console.log(this.gridBoard )
+        SetUpBoardStyles.styleBoard(this.gridBoard)
      }
 
 
-    _createBoard(model) {
-        for (let i = 0; i < model.length; i++) {
-        let boardCell = HTMLUtils.createElement('number', i)
-        boardCell.addEventListener('click', this.OnBoardCellClick)
-        SetUpBoardStyles.styleBoardCell(boardCell)
-        this.gridBoard.appendChild(boardCell)
+    _createBoard() {
+        for (let i = 0; i < this.model.userBoard.length; i++) {
+            let boardCell = HTMLUtils.createElement('number', i)
+            boardCell.addEventListener('click', this.OnBoardCellClick)
+            SetUpBoardStyles.styleBoardCell(boardCell)
+            this.gridBoard.appendChild(boardCell)
         }
-        let boardCells = HTMLUtils.getElementsByClassName('.number')
-        this.boardCells = boardCells
+        this.boardCells = HTMLUtils.getElementsByClassName('.number')
         
     }
 
     _removeAllEventListeners(){
-        // let boardCells = HTMLUtils.getElementsByClassName('.number')
         for (let i = 0; i < this.boardCells.length; i++) {
             this.boardCells[i].removeEventListener('click', this.onNumberClick)  
         }
     }
 
-    _updateBoard(model) {
-        for (let i = 0; i < model.length; i++) {                 
-            if (model[i].flag) {
+    _updateBoard() {
+        for (let i = 0; i < this.model.userBoard.length; i++) {                 
+            if (this.model.userBoard[i].flag && this.model.userBoard[i].randomNum === 0) {
                 this.boardCells[i].innerHTML = ''
             } else {
-                this.boardCells[i].innerHTML = model[i].randomNum
+                this.boardCells[i].innerHTML = this.model.userBoard[i].randomNum
             }
         }
     }
 
 
-    _createVisibleNumbersBoard(visibleNumbersLength) {
-        let visibleNumbersBoard = HTMLUtils.createParentElement('display')
-        while (visibleNumbersBoard.firstChild) {
-            visibleNumbersBoard.removeChild(visibleNumbersBoard.firstChild)
+    _createVisiblesBoardContainer() {                                                       //new function
+        this.visibleNumbersBoard = HTMLUtils.createParentElement(this.visiblesId)
+        SetUpBoardStyles.styleVisibleNumbersBoard(this.visibleNumbersBoard)
+    }
+
+    _createVisibleNumbersBoard() {
+        while (this.visibleNumbersBoard.firstChild) {
+            this.visibleNumbersBoard.removeChild(this.visibleNumbersBoard.firstChild)
         }
-        SetUpBoardStyles.styleVisibleNumbersBoard(visibleNumbersBoard)
-        for (let i = 0; i < visibleNumbersLength; i++) {
+        for (let i = 0; i < this.visibleNumbers.length; i++) {
             let visiblesBoardCell = HTMLUtils.createElement('visible-number',i)
             visiblesBoardCell.addEventListener('click',this.onVisibleNumberCellClick)
             SetUpBoardStyles.styleBoardCell(visiblesBoardCell)
-            visibleNumbersBoard.appendChild(visiblesBoardCell)
+            this.visibleNumbersBoard.appendChild(visiblesBoardCell)
         }
-        let visiblesBoardCells = HTMLUtils.getElementsByClassName('.visible-number')
-        this.visiblesBoardCells = visiblesBoardCells
+        this.visiblesBoardCells = HTMLUtils.getElementsByClassName('.visible-number')
     }
 
 
@@ -160,11 +182,11 @@ export default class HtmlView {
     _OnBoardCellClick(event) {
         let id = event.target.id
         let index = Number(id)                                                                                     //converting string to number
-        let visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, index)
-        this.createVisibleNumbersBoard(visibleNumbers.length)
-        // let visiblesBoardCells = HTMLUtils.getElementsByClassName('.visible-number')
-        for (let i = 0; i < visibleNumbers.length; i++) {
-            this.model.observer.notify( 'dataOfVisibles', this.visiblesBoardCells[i].innerHTML = visibleNumbers[i])                  //??????????????????
+        this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, index)
+        // this.setContainerForVisiblesBoard('display')
+        this._createVisibleNumbersBoard()
+        for (let i = 0; i < this.visibleNumbers.length; i++) {
+            this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]                            //
             
         }
         this.index = index                                                   //

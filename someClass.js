@@ -3,7 +3,10 @@
 
 const HTMLUtils = {
     getParentId: function(id) {
-        return document.getElementById(id)
+       let element = document.querySelector("div")
+       element.setAttribute('id', id)
+    //    document.div.appendChild(element)
+       return element
     },
 
     createParentElement: function(id) {
@@ -35,10 +38,11 @@ class Board {
 
 
     createBoard (arr, id) {
-        let board = HTMLUtils.createParentElement(id)
+        let board = HTMLUtils.getParentId(id)
         for (let i = 0; i < arr.length; i++) {
             let cell = HTMLUtils.createElement('clickable')
             cell.innerHTML = arr[i]
+            cell.addEventListener('click', this.onNumberClick)
             board.appendChild(cell)
         }
         return board
@@ -58,10 +62,10 @@ class Board {
         
     // }
 
-    setNumbers(index, newValue) {     
-        this.board[index] = newValue
-        this.update(this.board)                                //?????????
-    }
+    // setNumbers(index, newValue) {     
+    //     this.board[index] = newValue
+    //     this.update(this.board)                                //?????????
+    // }
     
   
     update(numbers) {

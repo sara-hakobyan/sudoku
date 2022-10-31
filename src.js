@@ -5,10 +5,11 @@ import HtmlView from './sudokuHtmlView.js'
 const mySudoku = new Sudoku()
 const htmlView = new HtmlView(mySudoku)
 
-// htmlView.updateBoard(mySudoku.userBoard)
-htmlView.setModel(mySudoku.userBoard, 'grid')
-htmlView.setUp(mySudoku.userBoard,'board')
-// htmlView.setParentContainer()
+
+htmlView.setModel(mySudoku)
+htmlView.setContainer('board')
+htmlView.setContainerForVisiblesBoard('display')
+
             
 
 function print() {

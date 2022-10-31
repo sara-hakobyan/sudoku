@@ -1,37 +1,30 @@
 import Observer from "./observer.js"
 
-const Changeable = {
-    onDataChanged: [],
-    dataOfVisibles: []
-}
-
 export default class Sudoku {
     constructor() {
         this.observer = new Observer()
-        this.gameBoard = this.createAllNumbers()
-        this.userBoard = this.markNumbersForUser()
-        Changeable.onDataChanged.push(this.createAllNumbers, this.markNumbersForUser)
+        console.log(this.observer)
+        this.createAllNumbers();
+       this.markNumbersForUser()
     }
 
     
     createAllNumbers() {                                                                        //the primer board 
-        let gameBoard = []
+        this.gameBoard = []
         let randomNum
         for (let i = 0; i < 81; i++) {
             let row = Math.floor(i / 9)
             let column = parseInt(i % 9)
-            let possibleNumbers = this.getVisibleNumbers(gameBoard, i)                         //
+            let possibleNumbers = this.getVisibleNumbers(this.gameBoard, i)                         //
             randomNum = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)]
             if (possibleNumbers.length) {
-                gameBoard.push({ row, column, randomNum, flag: false })
+                this.gameBoard.push({ row, column, randomNum, flag: false })
                 } else {
                     i = -1
-                    gameBoard = []
+                    this.gameBoard = []
                 }
             }
-            // Changeable.onDataChanged.push(gameBoard)
-            this.observer.notify('onDataChanged', gameBoard)
-            return gameBoard
+            // this.observer.notify('dataChanged', this.gameBoard)
         }
         
 
@@ -54,13 +47,13 @@ export default class Sudoku {
 
 
     markNumbersForUser() {                                                                               //ready board for user
-        let userBoard = this.cloneCreatedNumbers(this.gameBoard)
+        this.userBoard = this.cloneCreatedNumbers(this.gameBoard)
         let changedNumbers = []
         for (let i = 81; i >= 0; i--) {
             let index = Math.floor(Math.random() * 81) + 1
-            if (userBoard[index] && !userBoard[index].flag) {
-                userBoard[index].randomNum = 0                                  // 
-                userBoard[index].flag = true
+            if (this.userBoard[index] && !this.userBoard[index].flag) {
+                this.userBoard[index].randomNum = 0                                  // 
+                this.userBoard[index].flag = true
                 changedNumbers.push(index)
             } else {
                 i++
@@ -69,9 +62,7 @@ export default class Sudoku {
                 break
             }
         }
-    //    Changeable.onDataChanged.push(userBoard)
-        this.observer.notify('onDataChanged', userBoard)
-        return userBoard                                                           // no return ???
+        this.observer.notify('dataChange', this.userBoard)                                                         // no return ???
     }
 
 
@@ -97,6 +88,7 @@ export default class Sudoku {
         let visibleNums = this.getVisibleNumbers(this.userBoard, index)
         if (this.userBoard[index].flag && visibleNums.includes(value)) {
             this.userBoard[index].randomNum = value
+            this.observer.notify('dataChange', this.userBoard)
             this.isGameOver()                                                    //........
         } else {
             return 'invalid number'
@@ -151,9 +143,6 @@ export default class Sudoku {
         return true
     }
 
-
 }
-
- console.log(Changeable)
 
 
