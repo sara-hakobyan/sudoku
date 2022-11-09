@@ -8,7 +8,8 @@ const htmlView = new HtmlView(mySudoku)
 
 htmlView.setModel(mySudoku)
 htmlView.setContainer('board')
-htmlView.setContainerForVisiblesBoard('display')
+// htmlView.runningTimer()
+// htmlView.setContainerForVisiblesBoard('display')
 
             
 

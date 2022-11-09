@@ -3,7 +3,6 @@ import Observer from "./observer.js"
 export default class Sudoku {
     constructor() {
         this.observer = new Observer()
-        console.log(this.observer)
         this.createAllNumbers();
        this.markNumbersForUser()
     }
@@ -77,14 +76,14 @@ export default class Sudoku {
                 }
             }
         }
-        this.observer.notify('dataVisibles', visibleNumbers)
+        // this.observer.notify('dataVisibles', visibleNumbers)
         return visibleNumbers
     }
 
     fillBoardNumbers(row, column, value) {
         let index = row * 9 + column
         let visibleNums = this.getVisibleNumbers(this.userBoard, index)
-        if (this.userBoard[index].flag && visibleNums.includes(value)) {
+        if ((this.userBoard[index].flag && visibleNums.includes(value)) || value === 0) {
             this.userBoard[index].randomNum = value
             this.observer.notify('dataChange', this.userBoard)                  //observer.notify is added
             this.isGameOver()                                                      //........
