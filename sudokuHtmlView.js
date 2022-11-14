@@ -3,13 +3,17 @@ const HTMLUtils = {
     //     return document.getElementById(id)
     // },
 
-    createDiv: function (id) {
+
+    getParentdiv: function (id) {
         let div = document.querySelector('div')
-        let element = document.createElement('div')
-        element.setAttribute('id', id)
-        div.appendChild(element)
-        // document.body.firstElementChild.append(element)                //??????????????????
+        div.setAttribute('id', id)
         return document.getElementById(id)
+    },
+
+    createChildDiv: function (id) {
+        let element = document.createElement('div')
+        element.setAttribute('id', id)                 //
+        return element
     },
 
 
@@ -35,6 +39,12 @@ const HTMLUtils = {
 
 
 const SetUpBoardStyles = {
+    styleContainer: function (element) {
+        element.style.maxWidth = '380px'
+        element.style.minWidth = '380px'
+        element.style.padding = '20px'
+    },
+
     styleVisibleNumbersBoard: function (element) {
         element.style.border = '1px solid lightgray'
         element.style.borderRadius = '35px'
@@ -59,7 +69,7 @@ const SetUpBoardStyles = {
         element.style.border = '1px solid lightgray'
         element.style.borderRadius = '17px'
         element.style.display = 'flex'
-        element.style.justifyContent  = 'center'
+        element.style.justifyContent = 'center'
         element.style.alignItems = 'center'
         element.style.textAlign = 'center'
         element.style.cursor = 'pointer'
@@ -76,7 +86,7 @@ const SetUpBoardStyles = {
         element.style.borderRadius = '20px'
         element.style.margin = '30px auto'
         element.style.display = 'flex'
-        element.style.justifyContent  = 'center'
+        element.style.justifyContent = 'center'
         element.style.alignItems = 'center'
         element.style.textAlign = 'center'
     },
@@ -88,18 +98,18 @@ const SetUpBoardStyles = {
         element.style.borderRadius = '20px'
         element.style.margin = '30px auto'
         element.style.display = 'flex'
-        element.style.justifyContent  = 'center'
+        element.style.justifyContent = 'center'
         element.style.alignItems = 'center'
         element.style.textAlign = 'center'
     },
 
     styleButtonsContainer: function (element) {
-        // element.style.border = '1px solid green'
         element.style.height = '65px'
         element.style.width = '376px'
         element.style.display = 'flex'
         element.style.justifyContent = 'space-around'
         element.style.alignItems = 'center'
+        element.style.padding = '20px'
     },
 
     styleButton: function (element) {
@@ -110,41 +120,36 @@ const SetUpBoardStyles = {
         element.style.border = 'none'
         element.style.cursor = 'pointer'
         element.style.boxShadow = '0px 8px 15px rgba(0, 0, 0, 0.1)'
-        element.style.color = 'purple' 
+        element.style.color = 'purple'
     }
 }
 
 
 export default class HtmlView {
-    constructor(model) {
-        this.userScore = 0                                                            //??????
+    constructor(model) {                                                                   
         this.onBoardUpdate = this.onBoardUpdate.bind(this)
         this.OnBoardCellClick = this._OnBoardCellClick.bind(this)
         this.onVisibleNumberCellClick = this._onVisibleNumberCellClick.bind(this);
-        this._retrieveData = this._retrieveData.bind(this)
-        this._saveData = this._saveData.bind(this)
+        this.loadGame = this.loadGame.bind(this)
         if (model) {
             this.setModel(model);
         }
     }
 
-    setContainer(parentId) {
-        if (this.parentId) {
-            document.getElementById(this.parentId).remove(this.gridBoard);
-            document.getElementById('display').remove(this.visibleNumbersBoard)
+    setContainer(parentId) {                                                                  //////
+        while(this.parentId && this.parentId.firstChild){
+            this.parentId.removeChild(this.parentId.firstChild)
         }
         this.parentId = parentId;
         if (this.parentId) {
-            this._createBoardContainer()
-            this._createBoard()
-            this._updateBoard()
-            this._createVisiblesBoardContainer()
-            this._createTimerContainer()
-            this._runningTimer()
-            this._createScoresContainer()
-            this._createButtonsContainer()
-            this.loadGame()
-            // this._createResetButton()
+            this._createView()
+            let status = this.model.continueGame()
+            if (!status) {
+                this.onLoadWindow()
+            } else {
+                localStorage.clear()
+                this._updateView()
+            }
         }
     }
 
@@ -161,26 +166,98 @@ export default class HtmlView {
 
 
     onBoardUpdate() {
-        if (this.gridBoard) {
+        if (this.boardContainer) {
             this._updateBoard();
         }
     }
 
-    _createBoardContainer() {
-        this.gridBoard = HTMLUtils.createDiv(this.parentId)
-        SetUpBoardStyles.styleBoard(this.gridBoard)
+
+    _createView() {                                                                         // NEWW
+        this._createGameBoardContainer()
+        this._createBoard()
+        this._createBoardCells()
+        this._createVisiblesBoardContainer()
+        this._createTimerContainer()
+        this._createScoresContainer()
+        this._createButtonsContainer()
+        this._createResetButton()
+        this._createNewGameButton()
+    }
+
+    _updateView() {                                                                          //NEW
+        this._updateBoard()
+        this._runTimer()
     }
 
 
-    _createBoard() {
-        for (let i = 0; i < this.model.userBoard.length; i++) {
-            let boardCell = HTMLUtils.createElement(i, 'number')
-            boardCell.addEventListener('click', this.OnBoardCellClick)
-            SetUpBoardStyles.styleBoardCell(boardCell)
-            this.gridBoard.appendChild(boardCell)
-        }
-        this.boardCells = HTMLUtils.getElementsByClassName('.number')
 
+    _OnBoardCellClick(event) {
+        let id = event.target.id
+        this.index = Number(id)                                                                                             //converting string to number
+        if (this.model.userBoard[this.index].flag && this.model.userBoard[this.index].randomNum !== 0) {
+            this.model.fillBoardNumbers(this.model.userBoard[this.index].row, this.model.userBoard[this.index].column, 0)
+        }
+        this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)
+        this._updateVisiblesBoard()
+    }
+
+
+
+    _onVisibleNumberCellClick(event) {
+        let value = event.target.innerHTML
+        let number = Number(value)
+        for (let i = 0; i < this.model.userBoard.length; i++) {
+            if (i === this.index) {
+                this.boardCells[i].innerHTML = value
+                this.model.fillBoardNumbers(this.model.userBoard[i].row, this.model.userBoard[i].column, number)
+                this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)                     //notify in sudoku.js file 
+                this._updateVisiblesBoard()
+                this._updateScoresContainer()                                
+            }
+        }
+    }
+
+
+    loadGame() {                                                                                   //NEW ?????????????????????????????
+        this._updateBoard()
+        this._runTimer()
+        this._updateTimerContainer()
+        if (this.model.userScore > 10) {
+            this._updateScoresContainer()
+        }
+    }
+
+    onLoadWindow() {                                                           //NEW
+        window.addEventListener('load', this.loadGame)
+    }
+
+
+    resetGame() {                                                                          //NEW
+        localStorage.clear()
+        location.reload()
+    }
+
+
+    newGame() {                                                                              //NEW
+        this._createBoard()
+        this._createBoardCells()
+        this._createVisiblesBoardContainer()
+        this._createTimerContainer()
+        this._createScoresContainer()
+        this._createButtonsContainer()
+        this._createResetButton()
+        this._createNewGameButton()
+        localStorage.clear()
+    }
+
+
+    _runTimer() {
+        this.stop = setInterval(this._updateTimerContainer.bind(this), 1000)
+    }
+
+
+    _stopTimer() {
+        clearInterval(this.stop)
     }
 
 
@@ -191,31 +268,76 @@ export default class HtmlView {
     }
 
 
+    _updateScoresContainer() {
+        if (this.model.timeRemained.timerIsRunning) {
+            this.model._countScores()
+            this.scoresContainer.innerHTML = this.model.userScore
+        } else {
+            this.scoresContainer.innerHTML = this.model.userScore
+        }
+    }
+
+
+    _updateTimerContainer() {
+        this.model.timer()                                                                          // this.model.storeDataToBeSaved
+        if (this.model.timeRemained.timerIsRunning) {
+            this.timerContainer.innerHTML = this.model.timeRemained.minutes + " : " + this.model.timeRemained.seconds
+        } else {
+            this.timerContainer.innerHTML = "0 : 0"
+            this._stopTimer()
+        }
+
+    }
+
+
+    _updateVisiblesBoard() {
+        this._createVisibleNumbersBoard()
+        for (let i = 0; i < this.visibleNumbers.length; i++) {
+            this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]                                              //
+        }
+    }
+
+
     _updateBoard() {
         for (let i = 0; i < this.model.userBoard.length; i++) {
             if (this.model.userBoard[i].flag && this.model.userBoard[i].randomNum === 0) {
                 this.boardCells[i].innerHTML = ''
-                SetUpBoardStyles.styleCellNumber(this.boardCells[i])
             } else {
                 this.boardCells[i].innerHTML = this.model.userBoard[i].randomNum
+            }
+            if (this.model.userBoard[i].flag) {
+                SetUpBoardStyles.styleCellNumber(this.boardCells[i])
             }
         }
     }
 
-    _OnBoardCellClick(event) {
-        let id = event.target.id
-        this.index = Number(id)                                                                                            //converting string to number
-        if (this.model.userBoard[this.index].flag && this.model.userBoard[this.index].randomNum !== 0) {
-            this.model.fillBoardNumbers(this.model.userBoard[this.index].row, this.model.userBoard[this.index].column, 0)
+    _createGameBoardContainer() {
+        this.boardContainer = HTMLUtils.getParentdiv(this.parentId)
+        SetUpBoardStyles.styleContainer(this.boardContainer)
+
+    }
+
+    _createBoard() {
+        this.gridBoard = HTMLUtils.createChildDiv('gameBoard')
+        SetUpBoardStyles.styleBoard(this.gridBoard)
+        this.boardContainer.appendChild(this.gridBoard)
+    }
+
+    _createBoardCells() {
+        for (let i = 0; i < this.model.userBoard.length; i++) {
+            let boardCell = HTMLUtils.createElement(i, 'number')
+            boardCell.addEventListener('click', this.OnBoardCellClick)
+            SetUpBoardStyles.styleBoardCell(boardCell)
+            this.gridBoard.appendChild(boardCell)
         }
-        this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)
-        this._updateVisiblesBoard()
+        this.boardCells = HTMLUtils.getElementsByClassName('.number')
     }
 
 
-    _createVisiblesBoardContainer() {                                                        //new function
-        this.visibleNumbersBoard = HTMLUtils.createDiv('display')
+    _createVisiblesBoardContainer() {
+        this.visibleNumbersBoard = HTMLUtils.createChildDiv('display')
         SetUpBoardStyles.styleVisibleNumbersBoard(this.visibleNumbersBoard)
+        this.boardContainer.appendChild(this.visibleNumbersBoard)
     }
 
     _createVisibleNumbersBoard() {
@@ -231,130 +353,40 @@ export default class HtmlView {
         this.visiblesBoardCells = HTMLUtils.getElementsByClassName('.visible-number')
     }
 
-
-    _updateVisiblesBoard() {
-        this._createVisibleNumbersBoard()
-        for (let i = 0; i < this.visibleNumbers.length; i++) {
-            this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]                                              //
-        }
+    _createTimerContainer() {
+        this.timerContainer = HTMLUtils.createChildDiv('timer')
+        SetUpBoardStyles.styleTimer(this.timerContainer)
+        this.boardContainer.appendChild(this.timerContainer)
     }
-
-
-    _onVisibleNumberCellClick(event) {
-        let value = event.target.innerHTML
-        let number = Number(value)
-        for (let i = 0; i < this.model.userBoard.length; i++) {
-            if (i === this.index) {
-                this.boardCells[i].innerHTML = value
-                this.model.fillBoardNumbers(this.model.userBoard[i].row, this.model.userBoard[i].column, number)          //??????????
-                this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)                     //notify in sudoku.js file ?? 
-                this._updateVisiblesBoard()
-                this._countScores()
-                this._saveData()                                    //?????????????????
-            }
-        }
-    }
-
-    _createTimerContainer() {                                                     //NEW
-        let timerContainer = HTMLUtils.createDiv('timer')
-        SetUpBoardStyles.styleTimer(timerContainer)
-    }
-
-    _runningTimer() {                                                                               //NEW
-        let startMinutes = 5
-        this.countDownInSeconds = startMinutes * 60
-        this.stopWatch = setInterval(this._timer.bind(this), 1000)
-    }
-
-    _timer() {                                                                               //NEW
-        // console.log(this.timerRunning)
-        let minutes = Math.floor(this.countDownInSeconds / 60)
-        let seconds = this.countDownInSeconds % 60
-        if (minutes >= 0 && seconds >= 0) {
-            this.timerRunning = true
-            document.getElementById('timer').innerText = minutes + ' : ' + seconds
-        } else {
-            this.timerRunning = false
-            clearInterval(this.stopWatch)
-        }
-        // console.log(minutes + ' : ' + seconds)
-        this.countDownInSeconds--
-    }
-
 
     _createScoresContainer() {                                                                   //NEW
-        let scoresContainer = HTMLUtils.createDiv('scores')
-        SetUpBoardStyles.styleScoresContainer(scoresContainer)
+        this.scoresContainer = HTMLUtils.createChildDiv('scores')
+        SetUpBoardStyles.styleScoresContainer(this.scoresContainer)
+        this.boardContainer.appendChild(this.scoresContainer)
     }
 
 
-    _countScores() {                                                                      //NEW
-        let maxScores = 3000
-        if (this.userScore === 0) {
-            this.expectingPoint = 10
-            this.currentPoint = this.expectingPoint
-        } else {
-            this.expectingPoint = Number((this.currentPoint - 0.01).toFixed(2))
-            this.currentPoint = this.expectingPoint
-        }
-        if (this.currentPoint > 0 && this.currentPoint < maxScores && this.timerRunning) {
-            this.userScore += this.currentPoint
-            this.userScore = Number(this.userScore.toFixed(2))
-            document.getElementById('scores').innerText = this.userScore
-            console.log(this.userScore)
-        }
-    }
-
-    _createButtonsContainer(){                                                                     //NEW
-        let buttonCntainer = HTMLUtils.createDiv('buttons-container')
-        SetUpBoardStyles.styleButtonsContainer(buttonCntainer)
-        this._createResetButton()
-        this._createNewGameButton()
-    }
- 
-    _createResetButton(){                                                                        //NEW
-        let resetButton = HTMLUtils.createButton('resetButton')
-        document.getElementById('buttons-container').appendChild(resetButton)
-        SetUpBoardStyles.styleButton(resetButton)
-        resetButton.innerHTML = 'Reset Game'
-    }
-
-    _createNewGameButton(){                                                                        //NEW
-        let newGameButton = HTMLUtils.createButton('newGameButton')
-        document.getElementById('buttons-container').appendChild(newGameButton)
-        newGameButton.innerHTML = 'New Game'
-        SetUpBoardStyles.styleButton(newGameButton)
-    }
-
-
-    loadGame() {                                                                            //new
-        let gameStatus = this.model.isGameOver()
-        if (!gameStatus) {
-            // window.onload = () => this._retrieveData()
-            window.addEventListener('load', this._retrieveData)
-        }
-    }
-
-    _saveData() {                                                 // NEW              bind() method in constructor ?????
-        let dataToBeSaved = {
-            board: this.model.userBoard,
-            secondsRemained: this.countDownInSeconds,
-            currentScore: this.userScore
-        }
-        this.dataToBeSaved = dataToBeSaved
-        localStorage.setItem('dataToBeSaved', JSON.stringify(this.dataToBeSaved))    
-        // // let dataSaved = JSON.parse(localStorage.getItem('dataToBeSaved'))
-        console.log( this.dataToBeSaved.board[0].randomNum)
+    _createButtonsContainer() {                                                                     //NEW
+        this.buttonCntainer = HTMLUtils.createChildDiv('buttons-container')
+        SetUpBoardStyles.styleButtonsContainer(this.buttonCntainer)
+        this.boardContainer.appendChild(this.buttonCntainer)
         
     }
 
-    _retrieveData() {
-        console.log(this.dataToBeSaved)                                           //NEW                 undefinied ???????????         bind() method in constructor ????
-        for (let i = 0; i < this.model.userBoard.length; i++) {
-        //    document.getElementById(i).innerHTML =  this.dataToBeSaved.board[i].randomNum
-        }
-        let datasaved = localStorage.getItem('datatoBeSaved')
-        JSON.parse(datasaved)
+    _createResetButton() {                                                                        //NEW
+        let resetButton = HTMLUtils.createButton('resetButton')
+        this.buttonCntainer.appendChild(resetButton)
+        SetUpBoardStyles.styleButton(resetButton)
+        resetButton.innerHTML = 'Reset Game'
+        resetButton.addEventListener('click', () => this.resetGame())
+    }
+
+    _createNewGameButton() {                                                                        //NEW
+        let newGameButton = HTMLUtils.createButton('newGameButton')
+        this.buttonCntainer.appendChild(newGameButton)
+        newGameButton.innerHTML = 'New Game'
+        SetUpBoardStyles.styleButton(newGameButton)
+        newGameButton.addEventListener('click', () => this.newGame())
     }
 
 }

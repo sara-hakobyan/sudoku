@@ -31,5 +31,6 @@ print();
 
 
 // // console.log(mySudoku.observer)
-// // console.log(mySudoku)
+// mySudoku.runtimer()
+console.log(mySudoku)
 console.log(htmlView)

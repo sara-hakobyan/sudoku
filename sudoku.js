@@ -4,31 +4,33 @@ export default class Sudoku {
     constructor() {
         this.observer = new Observer()
         this.createAllNumbers();
-       this.markNumbersForUser()
+        this.markNumbersForUser();
+        this.countDownInSeconds = 5 * 60
+        this.userScore = 0                                           // is this ok in constructur        ????????????????????                 
     }
 
-    
-    createAllNumbers() {                                                                        //the primer board 
+
+    createAllNumbers() {                                                                        //the primary board
         this.gameBoard = []
         let randomNum
         for (let i = 0; i < 81; i++) {
             let row = Math.floor(i / 9)
             let column = parseInt(i % 9)
-            let possibleNumbers = this.getVisibleNumbers(this.gameBoard, i)                         //
+            let possibleNumbers = this.getVisibleNumbers(this.gameBoard, i)
             randomNum = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)]
             if (possibleNumbers.length) {
                 this.gameBoard.push({ row, column, randomNum, flag: false })
-                } else {
-                    i = -1
-                    this.gameBoard = []
-                }
+            } else {
+                i = -1
+                this.gameBoard = []
             }
-            // this.observer.notify('dataChanged', this.gameBoard)
         }
-        
+        // this.observer.notify('dataChanged', this.gameBoard)
+    }
 
 
-    checkNumbers(board, index, num) {               ///
+
+    checkNumbers(board, index, num) {
         let row = Math.floor(index / 9)
         let column = parseInt(index % 9)
         if (this.box3x3Check(board, row, column, num) &&
@@ -45,13 +47,13 @@ export default class Sudoku {
     }
 
 
-    markNumbersForUser() {                                                                               //ready board for user
+    markNumbersForUser() {                                                                               //ready board for PLAYER
         this.userBoard = this.cloneCreatedNumbers(this.gameBoard)
         let changedNumbers = []
         for (let i = 81; i >= 0; i--) {
             let index = Math.floor(Math.random() * 81) + 1
             if (this.userBoard[index] && !this.userBoard[index].flag) {
-                this.userBoard[index].randomNum = 0                                  // 
+                this.userBoard[index].randomNum = 0
                 this.userBoard[index].flag = true
                 changedNumbers.push(index)
             } else {
@@ -61,7 +63,7 @@ export default class Sudoku {
                 break
             }
         }
-        this.observer.notify('dataChanged', this.userBoard)                                                         // no return ???
+        this.observer.notify('dataChanged', this.userBoard)
     }
 
 
@@ -71,12 +73,11 @@ export default class Sudoku {
         for (let i = 0; i < numbers.length; i++) {
             if (this.checkNumbers(board, index, numbers[i])) {
                 visibleNumbers.push(numbers[i])
-                if(board[index] && !board[index].flag) {
-                    visibleNumbers= []
+                if (board[index] && !board[index].flag) {
+                    visibleNumbers = []
                 }
             }
         }
-        // this.observer.notify('dataVisibles', visibleNumbers)
         return visibleNumbers
     }
 
@@ -85,8 +86,9 @@ export default class Sudoku {
         let visibleNums = this.getVisibleNumbers(this.userBoard, index)
         if ((this.userBoard[index].flag && visibleNums.includes(value)) || value === 0) {
             this.userBoard[index].randomNum = value
-            this.observer.notify('dataChange', this.userBoard)                  //observer.notify is added
-            this.isGameOver()                                                      //........
+            this.storeDataToBeSaved()
+            this.observer.notify('dataChange', this.userBoard)                      //observer.notify is added
+            this.isGameOver()                                                      //
         } else {
             return 'invalid number'
         }
@@ -95,13 +97,96 @@ export default class Sudoku {
 
 
 
-    isGameOver() {                                                    /// 
+    isGameOver() {
         for (let i = 0; i < this.userBoard.length; i++) {
             if (this.userBoard[i].randomNum === 0) {
                 return false
             }
         }
         return true
+    }
+
+
+
+    timer__() {
+        this.timeRemained = []                                                      //minutes and seconds in objects, in array ==>>  NOT USED FUNCTION
+        while (this.countDownInSeconds >= 0) {
+            let minutes = Math.floor(this.countDownInSeconds / 60)
+            let seconds = this.countDownInSeconds % 60
+            this.timeRemained.push({ minutes, seconds, running: true })
+            this.countDownInSeconds--
+            if (minutes === 0 && seconds === 0) {
+                break
+            }
+        }
+    }
+
+
+    timer() {                                                                    // NEW
+        this.timeRemained = {
+            minutes: Math.floor(this.countDownInSeconds / 60),
+            seconds: this.countDownInSeconds % 60,
+            timerIsRunning: true
+        }
+        this.countDownInSeconds--                                             //this.countDownInSeconds IS ASSIGNED IN CONSTRUCTOR
+        if (this.countDownInSeconds < -1) {
+            this.timeRemained.timerIsRunning = false
+            return                                                        
+        }
+        this.storeDataToBeSaved()  
+    }
+
+
+    _countScores() {
+        let maxScoreLimit = 3000
+        if (this.userScore === 0) {                                                 //NEW          this.userScore  IS ASSIGNED IN CONSTRUCTOR
+            this.expectingPoint = 10
+            this.currentPoint = this.expectingPoint
+        } else {
+            this.expectingPoint = Number((this.currentPoint - 0.01).toFixed(2))
+            this.currentPoint = this.expectingPoint
+        }
+        if (this.currentPoint > 0 && this.currentPoint < maxScoreLimit) {
+            this.userScore += this.currentPoint
+            this.userScore = Number(this.userScore.toFixed(2))
+            console.log(this.userScore)
+        }
+        this.storeDataToBeSaved()
+    }
+
+
+    storeDataToBeSaved() {                                                 //NEW         function is called inside ->  _countScores(),  timer(), fillBoardNumbers()
+        this.dataSaved = {
+            board: this.userBoard,
+            secondsRemained: this.countDownInSeconds,
+            scores: this.userScore
+        }
+        localStorage.setItem('dataSaved', JSON.stringify(this.dataSaved))                                                                    //??????????
+    }
+
+
+    continueGame () {                                                                 //NEW
+        let dataSaved = this.retrieveData()
+        if (dataSaved == null) {
+            return true
+        } else {
+            this.userBoard = dataSaved.board
+            this.countDownInSeconds = dataSaved.secondsRemained
+            this.userScore = dataSaved.scores
+            let gameStatus = this.isGameOver()
+            if (gameStatus) {
+                return true
+            } else {
+                return false
+            }
+            
+        }
+        
+    }
+
+    retrieveData() {
+        let data = JSON.parse(localStorage.getItem('dataSaved'))                       //NEW
+        return data
     }
 
 
@@ -132,7 +217,7 @@ export default class Sudoku {
         for (let i = boxRow; i < boxRow + 3; i++) {
             for (let j = boxColumn; j < boxColumn + 3; j++) {
                 let index = i * 9 + j
-                if (board[index] && board[index].row === i && board[index].column === j && board [index].randomNum === num) {
+                if (board[index] && board[index].row === i && board[index].column === j && board[index].randomNum === num) {
                     return false
                 }
             }
