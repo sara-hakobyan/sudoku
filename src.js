@@ -8,9 +8,6 @@ const htmlView = new HtmlView(mySudoku)
 
 htmlView.setModel(mySudoku)
 htmlView.setContainer('board')
-// htmlView.runningTimer()
-// htmlView.setContainerForVisiblesBoard('display')
-
             
 
 function print() {
@@ -30,7 +27,5 @@ function print() {
 print();
 
 
-// // console.log(mySudoku.observer)
-// mySudoku.runtimer()
 console.log(mySudoku)
 console.log(htmlView)

@@ -1,8 +1,10 @@
 import Observer from "./observer.js"
+import  Storage from "./sudokuStorage.js";
 
 export default class Sudoku {
     constructor() {
         this.observer = new Observer()
+        this.storage = new Storage()
         this.createAllNumbers();
         this.markNumbersForUser();
         this.countDownInSeconds = 5 * 60
@@ -86,9 +88,9 @@ export default class Sudoku {
         let visibleNums = this.getVisibleNumbers(this.userBoard, index)
         if ((this.userBoard[index].flag && visibleNums.includes(value)) || value === 0) {
             this.userBoard[index].randomNum = value
-            this.storeDataToBeSaved()
+            this.dataToBeSaved()                                                                             
             this.observer.notify('dataChange', this.userBoard)                      //observer.notify is added
-            this.isGameOver()                                                      //
+            this.isGameOver()                                                      
         } else {
             return 'invalid number'
         }
@@ -107,39 +109,24 @@ export default class Sudoku {
     }
 
 
-
-    timer__() {
-        this.timeRemained = []                                                      //minutes and seconds in objects, in array ==>>  NOT USED FUNCTION
-        while (this.countDownInSeconds >= 0) {
-            let minutes = Math.floor(this.countDownInSeconds / 60)
-            let seconds = this.countDownInSeconds % 60
-            this.timeRemained.push({ minutes, seconds, running: true })
-            this.countDownInSeconds--
-            if (minutes === 0 && seconds === 0) {
-                break
-            }
-        }
-    }
-
-
-    timer() {                                                                    // NEW
+    timer() {                                                                   
         this.timeRemained = {
             minutes: Math.floor(this.countDownInSeconds / 60),
             seconds: this.countDownInSeconds % 60,
             timerIsRunning: true
         }
-        this.countDownInSeconds--                                             //this.countDownInSeconds IS ASSIGNED IN CONSTRUCTOR
+        this.countDownInSeconds--                                             //this.countDownInSeconds IS ASSIGNED IN CONSTRUCTOR  ???
         if (this.countDownInSeconds < -1) {
             this.timeRemained.timerIsRunning = false
             return                                                        
         }
-        this.storeDataToBeSaved()  
+        this.dataToBeSaved()  
     }
 
 
     _countScores() {
         let maxScoreLimit = 3000
-        if (this.userScore === 0) {                                                 //NEW          this.userScore  IS ASSIGNED IN CONSTRUCTOR
+        if (this.userScore === 0) {                                                 //         this.userScore  IS ASSIGNED IN CONSTRUCTOR           ???????
             this.expectingPoint = 10
             this.currentPoint = this.expectingPoint
         } else {
@@ -151,22 +138,24 @@ export default class Sudoku {
             this.userScore = Number(this.userScore.toFixed(2))
             console.log(this.userScore)
         }
-        this.storeDataToBeSaved()
+        this.dataToBeSaved()
     }
 
 
-    storeDataToBeSaved() {                                                 //NEW         function is called inside ->  _countScores(),  timer(), fillBoardNumbers()
+   dataToBeSaved() {                                               
         this.dataSaved = {
             board: this.userBoard,
             secondsRemained: this.countDownInSeconds,
             scores: this.userScore
         }
-        localStorage.setItem('dataSaved', JSON.stringify(this.dataSaved))                                                                    //??????????
+        this.storage.store('data', this.dataSaved) 
+                                                                     
     }
 
 
-    continueGame () {                                                                 //NEW
-        let dataSaved = this.retrieveData()
+    retrieveAndContinue() {
+        let dataSaved = this.storage.retrieve('data')
+        console.log(dataSaved)
         if (dataSaved == null) {
             return true
         } else {
@@ -176,18 +165,11 @@ export default class Sudoku {
             let gameStatus = this.isGameOver()
             if (gameStatus) {
                 return true
-            } else {
-                return false
             }
-            
         }
-        
+        return false
     }
 
-    retrieveData() {
-        let data = JSON.parse(localStorage.getItem('dataSaved'))                       //NEW
-        return data
-    }
 
 
 

@@ -1,7 +1,7 @@
 const HTMLUtils = {
-    // getParentId: function (id) {
-    //     return document.getElementById(id)
-    // },
+    getParentDiv: function (id) {
+        return document.getElementById(id)
+    },
 
 
     getParentdiv: function (id) {
@@ -9,6 +9,7 @@ const HTMLUtils = {
         div.setAttribute('id', id)
         return document.getElementById(id)
     },
+
 
     createChildDiv: function (id) {
         let element = document.createElement('div')
@@ -32,10 +33,24 @@ const HTMLUtils = {
 
     getElementsByClassName: function (cssClass) {
         return document.querySelectorAll(cssClass)
+    },
+
+    createRadioButton: function(id) {
+        let input = document.createElement('input')
+        input.type ='radio'
+        input.name= id
+        input.id = id
+        let label = document.createElement('label')
+        label.setAttribute('for', input.id)
+        return input
+    },
+
+    createTextNode: function(text) {
+        let message = document.createTextNode(text)
+        return message
     }
+
 }
-
-
 
 
 const SetUpBoardStyles = {
@@ -109,7 +124,6 @@ const SetUpBoardStyles = {
         element.style.display = 'flex'
         element.style.justifyContent = 'space-around'
         element.style.alignItems = 'center'
-        element.style.padding = '20px'
     },
 
     styleButton: function (element) {
@@ -136,18 +150,22 @@ export default class HtmlView {
         }
     }
 
-    setContainer(parentId) {                                                                  //////
-        while(this.parentId && this.parentId.firstChild){
-            this.parentId.removeChild(this.parentId.firstChild)
-        }
+    setContainer(parentId) {  
+        if (this.parentId) {
+            document.getElementById(this.parentId).remove(this.boardContainer)
+        }                                                                
+        // while(this.boardContainer && this.boardContainer.firstChild){
+        //     this.boardContainer.removeChild(this.boardContainer.firstChild)
+        // }
+      
         this.parentId = parentId;
         if (this.parentId) {
             this._createView()
-            let status = this.model.continueGame()
+            let status = this.model.retrieveAndContinue()
             if (!status) {
                 this.onLoadWindow()
             } else {
-                localStorage.clear()
+                this.model.storage.clearAll()
                 this._updateView()
             }
         }
@@ -180,8 +198,7 @@ export default class HtmlView {
         this._createTimerContainer()
         this._createScoresContainer()
         this._createButtonsContainer()
-        this._createResetButton()
-        this._createNewGameButton()
+        this._createRadioButton()
     }
 
     _updateView() {                                                                          //NEW
@@ -218,37 +235,25 @@ export default class HtmlView {
     }
 
 
-    loadGame() {                                                                                   //NEW ?????????????????????????????
+    loadGame() {                                                                              //NEW ?????????????????????????????
         this._updateBoard()
         this._runTimer()
         this._updateTimerContainer()
-        if (this.model.userScore > 10) {
+        if (this.model.userScore >= 10) {
             this._updateScoresContainer()
         }
     }
 
-    onLoadWindow() {                                                           //NEW
+    onLoadWindow() {                                                                          //NEW
         window.addEventListener('load', this.loadGame)
     }
 
 
-    resetGame() {                                                                          //NEW
-        localStorage.clear()
+    _newGame() {                                                                          //NEW
+        this.model.storage.clearAll()
         location.reload()
     }
 
-
-    newGame() {                                                                              //NEW
-        this._createBoard()
-        this._createBoardCells()
-        this._createVisiblesBoardContainer()
-        this._createTimerContainer()
-        this._createScoresContainer()
-        this._createButtonsContainer()
-        this._createResetButton()
-        this._createNewGameButton()
-        localStorage.clear()
-    }
 
 
     _runTimer() {
@@ -303,7 +308,7 @@ export default class HtmlView {
             if (this.model.userBoard[i].flag && this.model.userBoard[i].randomNum === 0) {
                 this.boardCells[i].innerHTML = ''
             } else {
-                this.boardCells[i].innerHTML = this.model.userBoard[i].randomNum
+                this.boardCells[i].innerText = this.model.userBoard[i].randomNum
             }
             if (this.model.userBoard[i].flag) {
                 SetUpBoardStyles.styleCellNumber(this.boardCells[i])
@@ -312,7 +317,9 @@ export default class HtmlView {
     }
 
     _createGameBoardContainer() {
-        this.boardContainer = HTMLUtils.getParentdiv(this.parentId)
+        const parent = HTMLUtils.getParentDiv('sudoku')
+        this.boardContainer = HTMLUtils.createChildDiv(this.parentId)
+        parent.append(this.boardContainer)
         SetUpBoardStyles.styleContainer(this.boardContainer)
 
     }
@@ -370,15 +377,7 @@ export default class HtmlView {
         this.buttonCntainer = HTMLUtils.createChildDiv('buttons-container')
         SetUpBoardStyles.styleButtonsContainer(this.buttonCntainer)
         this.boardContainer.appendChild(this.buttonCntainer)
-        
-    }
-
-    _createResetButton() {                                                                        //NEW
-        let resetButton = HTMLUtils.createButton('resetButton')
-        this.buttonCntainer.appendChild(resetButton)
-        SetUpBoardStyles.styleButton(resetButton)
-        resetButton.innerHTML = 'Reset Game'
-        resetButton.addEventListener('click', () => this.resetGame())
+        this._createNewGameButton()
     }
 
     _createNewGameButton() {                                                                        //NEW
@@ -386,7 +385,25 @@ export default class HtmlView {
         this.buttonCntainer.appendChild(newGameButton)
         newGameButton.innerHTML = 'New Game'
         SetUpBoardStyles.styleButton(newGameButton)
-        newGameButton.addEventListener('click', () => this.newGame())
+        newGameButton.addEventListener('click', () => this._newGame())
     }
 
+    _createRadioButton() {
+        let radioButtonContainer = HTMLUtils.createChildDiv('radioButton')
+        this.boardContainer.appendChild(radioButtonContainer)
+        let radioButton = HTMLUtils.createRadioButton('user')
+        radioButtonContainer.appendChild(radioButton)    
+        let buttonText = HTMLUtils.createTextNode('Choose')
+        radioButtonContainer.appendChild(buttonText)
+        radioButton.addEventListener('change', this.choose)
+    }
+
+
+    choose(e) {
+        if (this.checked) {
+            console.log(this.value)
+        }
+    }
+
+    
 }
