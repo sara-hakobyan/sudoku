@@ -89,7 +89,7 @@ export default class Sudoku {
         if ((this.userBoard[index].flag && visibleNums.includes(value)) || value === 0) {
             this.userBoard[index].randomNum = value
             this.dataToBeSaved()                                                                             
-            this.observer.notify('dataChange', this.userBoard)                      //observer.notify is added
+            this.observer.notify('dataChanged', this.userBoard)                      //observer.notify is added
             this.isGameOver()                                                      
         } else {
             return 'invalid number'
@@ -148,12 +148,12 @@ export default class Sudoku {
             secondsRemained: this.countDownInSeconds,
             scores: this.userScore
         }
-        this.storage.store('data', this.dataSaved) 
-                                                                     
+        this.storage.store('data', this.dataSaved)                                                            
     }
 
 
     retrieveAndContinue() {
+        // this.storage.retrieve('userData')
         let dataSaved = this.storage.retrieve('data')
         console.log(dataSaved)
         if (dataSaved == null) {

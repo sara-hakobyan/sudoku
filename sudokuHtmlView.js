@@ -13,7 +13,7 @@ const HTMLUtils = {
 
     createChildDiv: function (id) {
         let element = document.createElement('div')
-        element.setAttribute('id', id)                 //
+        element.setAttribute('id', id)                 
         return element
     },
 
@@ -35,17 +35,19 @@ const HTMLUtils = {
         return document.querySelectorAll(cssClass)
     },
 
-    createRadioButton: function(id) {
-        let input = document.createElement('input')
-        input.type ='radio'
-        input.name= id
-        input.id = id
-        let label = document.createElement('label')
-        label.setAttribute('for', input.id)
-        return input
+    createRadioButton: function (parentIdOfButtonsContainer) {                         //NEW
+        let genders = ['Male', 'Female']
+        let group = document.getElementById(parentIdOfButtonsContainer)
+        group.innerHTML = genders.map(
+            (gender) => `<input type='radio' name='gender' value='${gender}' id='${gender}'>
+                        <label for='${gender}'>${gender}</label>`
+
+        ).join(' ')
+        let genderButtons = document.querySelectorAll('input[name="gender"]')
+        return genderButtons
     },
 
-    createTextNode: function(text) {
+    createTextNode: function (text) {                                 //NEW
         let message = document.createTextNode(text)
         return message
     }
@@ -138,26 +140,30 @@ const SetUpBoardStyles = {
     }
 }
 
+import User from "./userData.js"                      //????????
 
 export default class HtmlView {
-    constructor(model) {                                                                   
+    constructor(model) {
+        this.user = new User()
         this.onBoardUpdate = this.onBoardUpdate.bind(this)
         this.OnBoardCellClick = this._OnBoardCellClick.bind(this)
         this.onVisibleNumberCellClick = this._onVisibleNumberCellClick.bind(this);
         this.loadGame = this.loadGame.bind(this)
+        this._newGame = this._newGame.bind(this)
+        this.choose = this.choose.bind(this)                                  //??????????? .bind method is not working???
         if (model) {
             this.setModel(model);
         }
     }
 
-    setContainer(parentId) {  
+    setContainer(parentId) {
         if (this.parentId) {
             document.getElementById(this.parentId).remove(this.boardContainer)
-        }                                                                
+        }
         // while(this.boardContainer && this.boardContainer.firstChild){
         //     this.boardContainer.removeChild(this.boardContainer.firstChild)
         // }
-      
+
         this.parentId = parentId;
         if (this.parentId) {
             this._createView()
@@ -165,7 +171,7 @@ export default class HtmlView {
             if (!status) {
                 this.onLoadWindow()
             } else {
-                this.model.storage.clearAll()
+                this.model.storage.removeData('data')
                 this._updateView()
             }
         }
@@ -190,7 +196,7 @@ export default class HtmlView {
     }
 
 
-    _createView() {                                                                         // NEWW
+    _createView() {                                                                        
         this._createGameBoardContainer()
         this._createBoard()
         this._createBoardCells()
@@ -201,7 +207,7 @@ export default class HtmlView {
         this._createRadioButton()
     }
 
-    _updateView() {                                                                          //NEW
+    _updateView() {                                                                          
         this._updateBoard()
         this._runTimer()
     }
@@ -229,13 +235,13 @@ export default class HtmlView {
                 this.model.fillBoardNumbers(this.model.userBoard[i].row, this.model.userBoard[i].column, number)
                 this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)                     //notify in sudoku.js file 
                 this._updateVisiblesBoard()
-                this._updateScoresContainer()                                
+                this._updateScoresContainer()
             }
         }
     }
 
 
-    loadGame() {                                                                              //NEW ?????????????????????????????
+    loadGame() {                                                                              
         this._updateBoard()
         this._runTimer()
         this._updateTimerContainer()
@@ -244,13 +250,13 @@ export default class HtmlView {
         }
     }
 
-    onLoadWindow() {                                                                          //NEW
+    onLoadWindow() {                                                                          
         window.addEventListener('load', this.loadGame)
     }
 
 
-    _newGame() {                                                                          //NEW
-        this.model.storage.clearAll()
+    _newGame() {                                                                          
+        this.model.storage.removeData('data')
         location.reload()
     }
 
@@ -284,7 +290,7 @@ export default class HtmlView {
 
 
     _updateTimerContainer() {
-        this.model.timer()                                                                          // this.model.storeDataToBeSaved
+        this.model.timer()                                                                          
         if (this.model.timeRemained.timerIsRunning) {
             this.timerContainer.innerHTML = this.model.timeRemained.minutes + " : " + this.model.timeRemained.seconds
         } else {
@@ -298,7 +304,7 @@ export default class HtmlView {
     _updateVisiblesBoard() {
         this._createVisibleNumbersBoard()
         for (let i = 0; i < this.visibleNumbers.length; i++) {
-            this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]                                              //
+            this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]                                              
         }
     }
 
@@ -366,44 +372,46 @@ export default class HtmlView {
         this.boardContainer.appendChild(this.timerContainer)
     }
 
-    _createScoresContainer() {                                                                   //NEW
+    _createScoresContainer() {                                                                  
         this.scoresContainer = HTMLUtils.createChildDiv('scores')
         SetUpBoardStyles.styleScoresContainer(this.scoresContainer)
         this.boardContainer.appendChild(this.scoresContainer)
     }
 
 
-    _createButtonsContainer() {                                                                     //NEW
+    _createButtonsContainer() {                                                                     
         this.buttonCntainer = HTMLUtils.createChildDiv('buttons-container')
         SetUpBoardStyles.styleButtonsContainer(this.buttonCntainer)
         this.boardContainer.appendChild(this.buttonCntainer)
         this._createNewGameButton()
     }
 
-    _createNewGameButton() {                                                                        //NEW
+    _createNewGameButton() {                                                                        
         let newGameButton = HTMLUtils.createButton('newGameButton')
         this.buttonCntainer.appendChild(newGameButton)
         newGameButton.innerHTML = 'New Game'
         SetUpBoardStyles.styleButton(newGameButton)
-        newGameButton.addEventListener('click', () => this._newGame())
+        newGameButton.addEventListener('click', this._newGame)
     }
 
-    _createRadioButton() {
+    _createRadioButton() {                                                                      //NEW  
         let radioButtonContainer = HTMLUtils.createChildDiv('radioButton')
         this.boardContainer.appendChild(radioButtonContainer)
-        let radioButton = HTMLUtils.createRadioButton('user')
-        radioButtonContainer.appendChild(radioButton)    
-        let buttonText = HTMLUtils.createTextNode('Choose')
-        radioButtonContainer.appendChild(buttonText)
-        radioButton.addEventListener('change', this.choose)
-    }
-
-
-    choose(e) {
-        if (this.checked) {
-            console.log(this.value)
+        this.genderButtons = HTMLUtils.createRadioButton('radioButton')
+        console.log(this.genderButtons)
+        for (let i = 0; i < this.genderButtons.length; i++) {
+               this.genderButtons[i].addEventListener('change', () => this.choose(this.genderButtons[i]))       //?????? arrow function
         }
     }
 
-    
+    choose(e) {                                          //NEW
+        let name, gender
+        if (e.checked) {
+            name = prompt('Please enter your name!')
+            gender = e.value  
+        }
+        this.user.getUserInfo(name, gender)                                // user Data seved here                     ok???
+    }
+
+
 }
