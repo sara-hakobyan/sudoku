@@ -140,17 +140,17 @@ const SetUpBoardStyles = {
     }
 }
 
-import User from "./userData.js"                      //????????
+// import User from "./UserData.js"                      //????????
 
 export default class HtmlView {
     constructor(model) {
-        this.user = new User()
-        this.onBoardUpdate = this.onBoardUpdate.bind(this)
-        this.OnBoardCellClick = this._OnBoardCellClick.bind(this)
-        this.onVisibleNumberCellClick = this._onVisibleNumberCellClick.bind(this);
-        this.loadGame = this.loadGame.bind(this)
+        // this.user = new User()
+        this._onBoardUpdate = this._onBoardUpdate.bind(this)
+        this._OnBoardCellClick = this._OnBoardCellClick.bind(this)
+        this._onVisibleNumberCellClick = this._onVisibleNumberCellClick.bind(this);
+        this._loadGame = this._loadGame.bind(this)
         this._newGame = this._newGame.bind(this)
-        this.choose = this.choose.bind(this)                                  //??????????? .bind method is not working???
+        this._choose = this._choose.bind(this)                                  //??????????? .bind method is not working???
         if (model) {
             this.setModel(model);
         }
@@ -163,15 +163,14 @@ export default class HtmlView {
         // while(this.boardContainer && this.boardContainer.firstChild){
         //     this.boardContainer.removeChild(this.boardContainer.firstChild)
         // }
-
         this.parentId = parentId;
         if (this.parentId) {
             this._createView()
-            let status = this.model.retrieveAndContinue()
+            let status = this.model._retrieveAndContinue()
             if (!status) {
-                this.onLoadWindow()
+                this._onLoadWindow()
             } else {
-                this.model.storage.removeData('data')
+                this.model.userData._removeData('data')
                 this._updateView()
             }
         }
@@ -179,17 +178,17 @@ export default class HtmlView {
 
     setModel(model) {
         if (this.model) {
-            this.model.observer.unsubscribe('dataChange', this.onBoardUpdate)
+            this.model.observer._unsubscribe('dataChange', this._onBoardUpdate)
         }
         this.model = model
         if (this.model) {
-            this.model.observer.subscribe('dataChange', this.onBoardUpdate)
+            this.model.observer._subscribe('dataChange', this._onBoardUpdate)
         }
-        this.onBoardUpdate();
+        this._onBoardUpdate();
     }
 
 
-    onBoardUpdate() {
+    _onBoardUpdate() {
         if (this.boardContainer) {
             this._updateBoard();
         }
@@ -218,9 +217,9 @@ export default class HtmlView {
         let id = event.target.id
         this.index = Number(id)                                                                                             //converting string to number
         if (this.model.userBoard[this.index].flag && this.model.userBoard[this.index].randomNum !== 0) {
-            this.model.fillBoardNumbers(this.model.userBoard[this.index].row, this.model.userBoard[this.index].column, 0)
+            this.model._fillBoardNumbers(this.model.userBoard[this.index].row, this.model.userBoard[this.index].column, 0)
         }
-        this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)
+        this.visibleNumbers = this.model._getVisibleNumbers(this.model.userBoard, this.index)
         this._updateVisiblesBoard()
     }
 
@@ -232,8 +231,8 @@ export default class HtmlView {
         for (let i = 0; i < this.model.userBoard.length; i++) {
             if (i === this.index) {
                 this.boardCells[i].innerHTML = value
-                this.model.fillBoardNumbers(this.model.userBoard[i].row, this.model.userBoard[i].column, number)
-                this.visibleNumbers = this.model.getVisibleNumbers(this.model.userBoard, this.index)                     //notify in sudoku.js file 
+                this.model._fillBoardNumbers(this.model.userBoard[i].row, this.model.userBoard[i].column, number)
+                this.visibleNumbers = this.model._getVisibleNumbers(this.model.userBoard, this.index)                     //notify in sudoku.js file 
                 this._updateVisiblesBoard()
                 this._updateScoresContainer()
             }
@@ -241,7 +240,7 @@ export default class HtmlView {
     }
 
 
-    loadGame() {                                                                              
+    _loadGame() {                                                                              
         this._updateBoard()
         this._runTimer()
         this._updateTimerContainer()
@@ -250,13 +249,13 @@ export default class HtmlView {
         }
     }
 
-    onLoadWindow() {                                                                          
-        window.addEventListener('load', this.loadGame)
+    _onLoadWindow() {                                                                          
+        window.addEventListener('load', this._loadGame)
     }
 
 
     _newGame() {                                                                          
-        this.model.storage.removeData('data')
+        this.model.userData._removeData('data')
         location.reload()
     }
 
@@ -290,7 +289,7 @@ export default class HtmlView {
 
 
     _updateTimerContainer() {
-        this.model.timer()                                                                          
+        this.model._timer()                                                                          
         if (this.model.timeRemained.timerIsRunning) {
             this.timerContainer.innerHTML = this.model.timeRemained.minutes + " : " + this.model.timeRemained.seconds
         } else {
@@ -339,7 +338,7 @@ export default class HtmlView {
     _createBoardCells() {
         for (let i = 0; i < this.model.userBoard.length; i++) {
             let boardCell = HTMLUtils.createElement(i, 'number')
-            boardCell.addEventListener('click', this.OnBoardCellClick)
+            boardCell.addEventListener('click', this._OnBoardCellClick)
             SetUpBoardStyles.styleBoardCell(boardCell)
             this.gridBoard.appendChild(boardCell)
         }
@@ -359,7 +358,7 @@ export default class HtmlView {
         }
         for (let i = 0; i < this.visibleNumbers.length; i++) {
             let visiblesBoardCell = HTMLUtils.createElement(i, 'visible-number')
-            visiblesBoardCell.addEventListener('click', this.onVisibleNumberCellClick)
+            visiblesBoardCell.addEventListener('click', this._onVisibleNumberCellClick)
             SetUpBoardStyles.styleBoardCell(visiblesBoardCell)
             this.visibleNumbersBoard.appendChild(visiblesBoardCell)
         }
@@ -400,17 +399,17 @@ export default class HtmlView {
         this.genderButtons = HTMLUtils.createRadioButton('radioButton')
         console.log(this.genderButtons)
         for (let i = 0; i < this.genderButtons.length; i++) {
-               this.genderButtons[i].addEventListener('change', () => this.choose(this.genderButtons[i]))       //?????? arrow function
+               this.genderButtons[i].addEventListener('change', () => this._choose(this.genderButtons[i]))       //?????? arrow function
         }
     }
 
-    choose(e) {                                          //NEW
+    _choose(e) {                                          //NEW
         let name, gender
         if (e.checked) {
             name = prompt('Please enter your name!')
             gender = e.value  
         }
-        this.user.getUserInfo(name, gender)                                // user Data seved here                     ok???
+        this.model.userData._setUserData(name, gender)                                // user Data seved here                     ok???
     }
 
 

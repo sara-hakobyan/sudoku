@@ -1,24 +1,25 @@
 export default class Storage {
     constructor(){
+    //     this.key = key
+    //     this.data = data
     }
 
-    store(key, data){
+    _store(key, data){
         let dataToSave = data
         localStorage.setItem(key, JSON.stringify(dataToSave))
-        console.log(key)
     }
 
-    retrieve(key) {
+    _retrieve(key) {
        let dataSaved = JSON.parse(localStorage.getItem(key))
        return dataSaved
     }
 
-    clearAll() {
+    _clearAll() {
         localStorage.clear()
     }
 
 
-    removeData(key){
+    _removeData(key){
         localStorage.removeItem(key)
     }
     

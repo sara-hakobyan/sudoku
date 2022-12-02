@@ -3,7 +3,7 @@
         this.subscribers = []
     }
 
-    subscribe(name, fn) {
+    _subscribe(name, fn) {
         let subscibersInfo = {
             name: name,
             fn: fn
@@ -12,7 +12,7 @@
      
     }
 
-    unsubscribe(name, toBeRemoved) {
+    _unsubscribe(name, toBeRemoved) {
         this.subscribers = this.subscribers.filter((obj) => {
             if (toBeRemoved === obj.fn && name === obj.name) {
                 return obj
@@ -21,7 +21,7 @@
         
     }
 
-    notify(name, data) {
+    _notify(name, data) {
         for (let i = 0; i < this.subscribers.length; i++) {
             if (this.subscribers[i].name === name) {
               this.subscribers[i].fn(data)
