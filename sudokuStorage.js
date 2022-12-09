@@ -4,22 +4,22 @@ export default class Storage {
     //     this.data = data
     }
 
-    _store(key, data){
-        let dataToSave = data
-        localStorage.setItem(key, JSON.stringify(dataToSave))
+    store(key, data){
+        let jsonData = JSON.stringify(data)
+        localStorage.setItem(key, jsonData)
     }
 
-    _retrieve(key) {
+    retrieve(key) {
        let dataSaved = JSON.parse(localStorage.getItem(key))
        return dataSaved
     }
 
-    _clearAll() {
+    clearAll() {
         localStorage.clear()
     }
 
 
-    _removeData(key){
+    removeData(key){
         localStorage.removeItem(key)
     }
     

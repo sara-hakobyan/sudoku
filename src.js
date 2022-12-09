@@ -27,5 +27,5 @@ function print() {
 print();
 
 
-console.log(mySudoku.storage)
+console.log(mySudoku.userData)
 console.log(htmlView)

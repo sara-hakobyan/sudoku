@@ -25,25 +25,36 @@ import Storage from "./SudokuStorage.js"
 export default class UserData extends Storage {
     constructor() {
         super()
-        // this.usersList = []
     }
 
-    _setUserData(name, gender){
+    _setUserData(name, gender){                              //New
         let userData = {
             name: name,
             gender: gender
         }
         if (userData.name == null ||  userData.name.trim().length === 0) {
-            return false
+            return 
         } 
-        let usersList = super._retrieve('userList')
-        console.log(usersList)
-        if (usersList) {
-            usersList.push(userData)
+        return userData
+        // let usersList = super.retrieve('userList')
+        // console.log(usersList)
+        // if (usersList) {
+        //     usersList.push(userData)
+        // } else {
+        //     usersList= [userData]
+        // }
+        // super.store('userList', usersList)
+    }
+
+    _getUserData(name,gender) {                                          //New
+        let data = this._setUserData(name, gender)
+        let userList = super.retrieve('userList')
+        if(userList == null) {
+            userList = [data]
         } else {
-            usersList= [userData]
+            userList.push(data)
         }
-        super._store('userList', usersList)
+        super.store('userList', userList)
     }
 
     

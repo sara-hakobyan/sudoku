@@ -4,16 +4,16 @@ const HTMLUtils = {
     },
 
 
-    getParentdiv: function (id) {
-        let div = document.querySelector('div')
-        div.setAttribute('id', id)
-        return document.getElementById(id)
-    },
+    // getParentdiv: function (id) {
+    //     let div = document.querySelector('div')
+    //     div.setAttribute('id', id)
+    //     return document.getElementById(id)
+    // },
 
 
     createChildDiv: function (id) {
         let element = document.createElement('div')
-        element.setAttribute('id', id)                 
+        element.setAttribute('id', id)
         return element
     },
 
@@ -50,6 +50,13 @@ const HTMLUtils = {
     createTextNode: function (text) {                                 //NEW
         let message = document.createTextNode(text)
         return message
+    },
+
+    createParagraph: function (text) {
+        let paragraph = document.createElement('p')
+        let message = document.createTextNode(text)
+        paragraph.appendChild(message)
+        return paragraph
     }
 
 }
@@ -134,10 +141,59 @@ const SetUpBoardStyles = {
         element.style.borderRadius = '20px'
         element.style.backgroundColor = 'lavender'
         element.style.border = 'none'
+        element.style.outline = 'none'
         element.style.cursor = 'pointer'
         element.style.boxShadow = '0px 8px 15px rgba(0, 0, 0, 0.1)'
         element.style.color = 'purple'
+    },
+
+    styleModalContainer: function (element) {
+        element.style.height = '200px'
+        element.style.width = '376px'
+        element.style.borderRadius = '25px'
+        element.style.border = 'none'
+        element.style.backgroundColor = 'rgb(230, 242, 255)'
+        element.style.padding = '5px 0px'
+        element.style.position = 'fixed'
+        element.style.top = '40%'
+        element.style.left = '40%'
+        element.style.zIndex = '2'
+        element.style.display = 'none'
+    },
+
+
+    styleInnerText: function (element) {
+        element.style.textAlign = 'center'
+        element.style.fontSize = '25px'
+        element.style.color = 'purple'
+    }, 
+
+    styleModalOverlay:function(element) {
+        element.style.zIndex = '1'
+        element.style.background = 'rgba(0, 0, 0, 0.5)'
+        element.style.width = '100%'
+        element.style.height = '100%'
+        element.style.backdropFilter = 'blur(3px)'
+        element.style.position = 'fixed'
+        element.style.inset = '0px'
+        element.style.display = 'none'
+    },
+
+    styleModalCloseButton: function(element) {
+        element.style.border = 'none'
+        element.style.borderRadius = '50%'
+        element.style.width ='27px'
+        element.style.height = '27px'
+        element.style.textAlign = 'center'
+        element.style.backgroundColor = '#bfbfbf'
+        element.style.position = 'absolute'
+        element.style.top = '5%'
+        element.style.right = '5%'
+        element.style.cursor = 'pointer'
+        element.style.color = 'white'
     }
+
+
 }
 
 // import User from "./UserData.js"                      //????????
@@ -151,6 +207,8 @@ export default class HtmlView {
         this._loadGame = this._loadGame.bind(this)
         this._newGame = this._newGame.bind(this)
         this._choose = this._choose.bind(this)                                  //??????????? .bind method is not working???
+        this._closeModal = this._closeModal.bind(this)
+        this._openModal = this._openModal.bind(this)
         if (model) {
             this.setModel(model);
         }
@@ -170,7 +228,7 @@ export default class HtmlView {
             if (!status) {
                 this._onLoadWindow()
             } else {
-                this.model.userData._removeData('data')
+                this.model.userData.removeData('data')
                 this._updateView()
             }
         }
@@ -195,7 +253,7 @@ export default class HtmlView {
     }
 
 
-    _createView() {                                                                        
+    _createView() {
         this._createGameBoardContainer()
         this._createBoard()
         this._createBoardCells()
@@ -204,9 +262,10 @@ export default class HtmlView {
         this._createScoresContainer()
         this._createButtonsContainer()
         this._createRadioButton()
+        this._createModalContainer()
     }
 
-    _updateView() {                                                                          
+    _updateView() {
         this._updateBoard()
         this._runTimer()
     }
@@ -240,7 +299,8 @@ export default class HtmlView {
     }
 
 
-    _loadGame() {                                                                              
+    _loadGame() {
+        // this.model.userData._getUserData()
         this._updateBoard()
         this._runTimer()
         this._updateTimerContainer()
@@ -249,14 +309,16 @@ export default class HtmlView {
         }
     }
 
-    _onLoadWindow() {                                                                          
+    _onLoadWindow() {
         window.addEventListener('load', this._loadGame)
     }
 
 
-    _newGame() {                                                                          
-        this.model.userData._removeData('data')
+    _newGame() {
+        this.model.userData.removeData('data')
+        // this.model.userData._getUserData()
         location.reload()
+        
     }
 
 
@@ -289,21 +351,44 @@ export default class HtmlView {
 
 
     _updateTimerContainer() {
-        this.model._timer()                                                                          
+        this.model._timer()
         if (this.model.timeRemained.timerIsRunning) {
             this.timerContainer.innerHTML = this.model.timeRemained.minutes + " : " + this.model.timeRemained.seconds
         } else {
             this.timerContainer.innerHTML = "0 : 0"
             this._stopTimer()
         }
+    }
 
+
+    _choose(e) {                                                       
+        let name, gender
+        // console.log(e.value)
+        if (e.checked) {
+            name = prompt('Please enter your name!')
+            gender = e.value
+        }
+        this.model.userData._getUserData(name, gender)                                //user Data seved here                     
+    }
+
+    _openModal(){                                                              //New
+        this.overlay.style.display = 'block'
+        this.modalContainer.style.display = 'block'
+        this._stopTimer()
+    }
+
+    _closeModal() {                                                              //New
+        this.overlay.style.display = 'none'
+        this.modalContainer.style.display = 'none'
+        this._runTimer()
+        
     }
 
 
     _updateVisiblesBoard() {
         this._createVisibleNumbersBoard()
         for (let i = 0; i < this.visibleNumbers.length; i++) {
-            this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]                                              
+            this.visiblesBoardCells[i].innerHTML = this.visibleNumbers[i]
         }
     }
 
@@ -326,7 +411,11 @@ export default class HtmlView {
         this.boardContainer = HTMLUtils.createChildDiv(this.parentId)
         parent.append(this.boardContainer)
         SetUpBoardStyles.styleContainer(this.boardContainer)
-
+        parent.addEventListener('keydown', (e) => {                              // ?????????????????????????
+            if(e.key === 'Escape') {
+                this._closeModal()
+            }
+        })
     }
 
     _createBoard() {
@@ -371,21 +460,22 @@ export default class HtmlView {
         this.boardContainer.appendChild(this.timerContainer)
     }
 
-    _createScoresContainer() {                                                                  
+    _createScoresContainer() {
         this.scoresContainer = HTMLUtils.createChildDiv('scores')
         SetUpBoardStyles.styleScoresContainer(this.scoresContainer)
         this.boardContainer.appendChild(this.scoresContainer)
     }
 
 
-    _createButtonsContainer() {                                                                     
+    _createButtonsContainer() {
         this.buttonCntainer = HTMLUtils.createChildDiv('buttons-container')
         SetUpBoardStyles.styleButtonsContainer(this.buttonCntainer)
         this.boardContainer.appendChild(this.buttonCntainer)
         this._createNewGameButton()
+        this._createNewViewButton()
     }
 
-    _createNewGameButton() {                                                                        
+    _createNewGameButton() {
         let newGameButton = HTMLUtils.createButton('newGameButton')
         this.buttonCntainer.appendChild(newGameButton)
         newGameButton.innerHTML = 'New Game'
@@ -393,24 +483,69 @@ export default class HtmlView {
         newGameButton.addEventListener('click', this._newGame)
     }
 
-    _createRadioButton() {                                                                      //NEW  
-        let radioButtonContainer = HTMLUtils.createChildDiv('radioButton')
-        this.boardContainer.appendChild(radioButtonContainer)
+    _createNewViewButton(){
+        let newViewButton = HTMLUtils.createButton('newViewButton')
+        this.buttonCntainer.appendChild(newViewButton)
+        newViewButton.innerHTML = 'New View'
+        SetUpBoardStyles.styleButton(newViewButton)    
+        newViewButton.addEventListener('click', this._openModal)                                                          //NEW
+    }
+
+    _createRadioButton() {                                                                      
+        this.radioButtonContainer = HTMLUtils.createChildDiv('radioButton')
+        this.boardContainer.appendChild(this.radioButtonContainer)
         this.genderButtons = HTMLUtils.createRadioButton('radioButton')
         console.log(this.genderButtons)
         for (let i = 0; i < this.genderButtons.length; i++) {
-               this.genderButtons[i].addEventListener('change', () => this._choose(this.genderButtons[i]))       //?????? arrow function
+            this.genderButtons[i].addEventListener('change', () => this._choose(this.genderButtons[i]))                //?????? does not work without arrow function
         }
     }
 
-    _choose(e) {                                          //NEW
-        let name, gender
-        if (e.checked) {
-            name = prompt('Please enter your name!')
-            gender = e.value  
-        }
-        this.model.userData._setUserData(name, gender)                                // user Data seved here                     ok???
+    _createModalContainer() {
+        this.modalContainer = HTMLUtils.createChildDiv('modalContainer')
+        this.boardContainer.appendChild(this.modalContainer)
+        SetUpBoardStyles.styleModalContainer(this.modalContainer)
+        let innerText = HTMLUtils.createParagraph('Choose Your Game')
+        this.modalContainer.appendChild(innerText)
+        SetUpBoardStyles.styleInnerText(innerText)
+        this._createModalBtnConatiner()
+        this._createModalOverlay()
     }
 
+    _createModalBtnConatiner() {
+        this.modalBtnContainer = HTMLUtils.createChildDiv('modalBtnContainer')
+        this.modalContainer.appendChild(this.modalBtnContainer)
+        SetUpBoardStyles.styleButtonsContainer(this.modalBtnContainer)
+        this._createModalNewGameBtns()
+        this._creatModalCloseButton()
+    }
+
+    _createModalNewGameBtns() {                                                  //// create loop for btns    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        let game1 = HTMLUtils.createButton('modalBtn1') 
+        this.modalBtnContainer.appendChild(game1)
+        SetUpBoardStyles.styleButton(game1)
+        game1.innerHTML = "Game One"
+        let game2 = HTMLUtils.createButton('modalBtn2')
+        this.modalBtnContainer.appendChild(game2)
+        SetUpBoardStyles.styleButton(game2)
+        game2.innerHTML = "Game Two"
+    }
+
+    _createModalOverlay(){
+        this.overlay = HTMLUtils.createChildDiv('overlay')
+        this.boardContainer.appendChild(this.overlay)
+        SetUpBoardStyles.styleModalOverlay(this.overlay)
+        this.overlay.addEventListener('click', this._closeModal)
+    }
+
+    _creatModalCloseButton(){
+        let closeButton = HTMLUtils.createButton('closeButton')
+        this.modalBtnContainer.appendChild(closeButton)
+        closeButton.innerHTML = "x"
+        SetUpBoardStyles.styleModalCloseButton(closeButton)
+        closeButton.addEventListener('click', this._closeModal)
+    }
+   
+    
 
 }

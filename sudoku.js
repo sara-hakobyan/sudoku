@@ -1,5 +1,4 @@
 import Observer from "./Observer.js"
-// import  Storage from "./SudokuStorage.js";
 import UserData from "./UserData.js";
 
 export default class Sudoku {
@@ -149,14 +148,12 @@ export default class Sudoku {
             secondsRemained: this.countDownInSeconds,
             scores: this.userScore
         }
-        // this.storage.store('data', this.dataSaved) 
-        this.userData._store('data', this.dataSaved)                                                              
+        this.userData.store('data', this.dataSaved)                                                              
     }
 
 
     _retrieveAndContinue() {
-        // let dataSaved = this.storage.retrieve('data')
-        let dataSaved = this.userData._retrieve('data')
+        let dataSaved = this.userData.retrieve('data')
         console.log(dataSaved)
         if (dataSaved == null) {
             return true
